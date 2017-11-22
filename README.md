@@ -2,6 +2,13 @@
 
 Weekly informal meeting at the Department of Computer Science and Engineering, Chalmers and Gothenburg University
 
+Time: Thursdays, 16.00-17.30
+Room: EDIT 8103
+
+First meeting: Thursday, 30 November 2017
+
+Schedule: see [Wiki](https://github.com/InitialTypes/Club/wiki)
+
 Content:
 - Types and programming languages
 - Type theory
@@ -20,8 +27,3 @@ Intended for:
 - PhD students
 - Junior researchers
 - Anyone else with a strong interest
-
-Time: Thursdays, 16.00-17.30
-Room: 8103
-
-First meeting: Thursday, 30 November 2017
