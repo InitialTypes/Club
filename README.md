@@ -3,7 +3,7 @@
 Weekly informal meeting at the Department of Computer Science and Engineering, Chalmers and Gothenburg University
 
 Time: Thursdays, 16.00-17.30
-Room: EDIT 8103
+Room: EDIT 3364
 
 First meeting: Thursday, 30 November 2017
 
