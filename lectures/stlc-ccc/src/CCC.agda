@@ -8,9 +8,16 @@ open import Agda.Primitive  -- Universe levels
 open import Relation.Binary using (Setoid; IsEquivalence); open Setoid; open IsEquivalence
 import Relation.Binary.EqReasoning as EqR
 
+
+---------------------------------------------------------------------------
+-- Cartesian closed category as mathematical structure
+---------------------------------------------------------------------------
+
 record CCC o m e : Set (lsuc (o ⊔ m ⊔ e)) where
 
+  ---------------------------------------------------------------------------
   -- Category
+  ---------------------------------------------------------------------------
 
   field
     -- Objects.  We use propositional equality for objects.
@@ -18,6 +25,8 @@ record CCC o m e : Set (lsuc (o ⊔ m ⊔ e)) where
 
     -- Morphisms.  The equality may be non-trivial.
     Homs : (a b : Ob) → Setoid m e
+
+  -- Abbreviations to access Hom-set and its equality
 
   Hom : (a b : Ob) → Set m
   Hom a b = Homs a b .Carrier
@@ -53,6 +62,9 @@ record CCC o m e : Set (lsuc (o ⊔ m ⊔ e)) where
       → Eq (comp f g) (comp f' g')
 
   ---------------------------------------------------------------------------
+  -- Cartesian
+  ---------------------------------------------------------------------------
+
   field
     -- Product object and projections
     Prod : (a b : Ob) → Ob
@@ -80,6 +92,7 @@ record CCC o m e : Set (lsuc (o ⊔ m ⊔ e)) where
       → Eq h (pair f g)
 
   ---------------------------------------------------------------------------
+  field
     -- Terminal object
     Unit : Ob
     unit : ∀ a → Hom a Unit
@@ -89,6 +102,10 @@ record CCC o m e : Set (lsuc (o ⊔ m ⊔ e)) where
       → Eq h (unit a)
 
   ---------------------------------------------------------------------------
+  -- Closed
+  ---------------------------------------------------------------------------
+
+  field
     -- Exponential object and application
     Arr : (a b : Ob) → Ob
     apply : ∀{a b} → Hom (Prod (Arr a b) a) b
@@ -105,7 +122,41 @@ record CCC o m e : Set (lsuc (o ⊔ m ⊔ e)) where
       → Eq h (curry f)
 
   ---------------------------------------------------------------------------
-  -- Derived laws
+  -- Derived laws for products
+  ---------------------------------------------------------------------------
+
+  -- Congruence law for pairing
+
+  pair-cong : ∀{a b c} {f f' : Hom c a} {g g' : Hom c b}
+    → Eq f f'
+    → Eq g g'
+    → Eq (pair f g) (pair f' g')
+  pair-cong {a} {b} {c} {f} {f'} {g} {g'} e e' = pair-unique f' g' (pair f g) ef eg
+    where
+    ef : Eq (comp π₁ (pair f g)) f'
+    ef = eq-trans β-π₁ e
+    eg : Eq (comp π₂ (pair f g)) g'
+    eg = eq-trans β-π₂ e'
+
+  -- Naturality law for pairing
+
+  pair-nat : ∀{a b c d} (f : Hom c a) (g : Hom c b) (h : Hom d c)
+    → Eq (comp (pair f g) h) (pair (comp f h) (comp g h))
+  pair-nat {a} {b} {c} {d} f g h =
+      pair-unique (comp f h) (comp g h) (comp (pair f g) h) ef eg
+    where
+
+    ef : Eq (comp π₁ (comp (pair f g) h)) (comp f h)
+    ef = begin
+      comp π₁ (comp (pair f g) h)   ≈⟨ eq-sym (assoc _ _ _) ⟩
+      comp (comp π₁ (pair f g)) h   ≈⟨ comp-cong β-π₁ eq-refl ⟩
+      comp f h                      ∎ where open EqR (Homs _ _)
+
+    eg : Eq (comp π₂ (comp (pair f g) h)) (comp g h)
+    eg = begin
+      comp π₂ (comp (pair f g) h)   ≈⟨ eq-sym (assoc _ _ _) ⟩
+      comp (comp π₂ (pair f g)) h   ≈⟨ comp-cong β-π₂ eq-refl ⟩
+      comp g h                      ∎ where open EqR (Homs _ _)
 
   -- Lemma: id is a pairing of π₁ and π₂
 
@@ -121,14 +172,31 @@ record CCC o m e : Set (lsuc (o ⊔ m ⊔ e)) where
   pair-π = eq-sym (pair-unique π₁ π₂ (id _) isPair-π₁-id isPair-π₂-id)
 
   ---------------------------------------------------------------------------
-
-  pair-cong : ∀{a b c} {f f' : Hom c a} {g g' : Hom c b}
-    → Eq f f'
-    → Eq g g'
-    → Eq (pair f g) (pair f' g')
-  pair-cong e e' = {!!}
-
+  -- Derived laws for exponentials
   ---------------------------------------------------------------------------
+
+  -- Congruence law for currying
+
+  curry-cong : ∀{a b c} {f f' : Hom (Prod c a) b}
+    → (e : Eq f f')
+    → Eq (curry f) (curry f')
+  curry-cong {a} {b} {c} {f} {f'} e = curry-unique f' (curry f) eq
+    where
+    eq : Eq (comp apply (pair (comp (curry f) π₁) π₂)) f'
+    eq = eq-trans (β-apply f) e
+
+  -- Naturality law for currying
+
+  curry-nat : ∀{a b c d} (f : Hom (Prod c a) b) (h : Hom d c)
+    → Eq (comp (curry f) h)
+         (curry (comp f (pair (comp h π₁) π₂)))
+  curry-nat {a} {b} {c} {d} f h =
+      curry-unique (comp f (pair (comp h π₁) π₂)) (comp (curry f) h) eq
+    where
+    eq : Eq (comp apply (pair (comp (comp (curry f) h) π₁) π₂))
+            (comp f (pair (comp h π₁) π₂))
+    eq = {!!}
+
 
   -- Lemma: id is a currying of the apply morphism
 
@@ -185,10 +253,10 @@ module Sound {o m e} (C : CCC o m e) where
   ⟪ fst-pair ⟫      = Cat.β-π₁
   ⟪ snd-pair ⟫      = Cat.β-π₂
   ⟪ id-pair ⟫       = Cat.eq-sym Cat.pair-π
-  ⟪ pair-comp ⟫     = {!!}
+  ⟪ pair-comp ⟫     = Cat.pair-nat _ _ _
   ⟪ unit ⟫          = Cat.unit-unique _
   ⟪ apply-curry ⟫   = {!Cat.β-apply _ !}
-  ⟪ curry-apply ⟫   = {!!}
+  ⟪ curry-apply ⟫   = Cat.curry-apply
   ⟪ curry-comp ⟫    = {!!}
   ⟪ eq-cong e e' ⟫  = Cat.comp-cong ⟪ e ⟫ ⟪ e' ⟫
   ⟪ eq-refl ⟫       = Cat.eq-refl
