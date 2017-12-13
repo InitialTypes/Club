@@ -105,13 +105,19 @@ record CCC o m e : Set (lsuc (o ⊔ m ⊔ e)) where
   -- Closed
   ---------------------------------------------------------------------------
 
+  -- Lift a morphism under a binder.
+  -- lift f = f × id
+
+  lift : ∀{a b} (f : Hom a b) {c} → Hom (Prod a c) (Prod b c)
+  lift f = pair (comp f π₁) π₂
+
   field
     -- Exponential object and application
     Arr : (a b : Ob) → Ob
     apply : ∀{a b} → Hom (Prod (Arr a b) a) b
 
   IsCurry : ∀{a b c} (f : Hom (Prod c a) b) (h : Hom c (Arr a b)) → Set _
-  IsCurry f h = Eq (comp apply (pair (comp h π₁) π₂)) f
+  IsCurry f h = Eq (comp apply (lift h)) f
 
   field
     curry   : ∀{a b c} (f : Hom (Prod c a) b) → Hom c (Arr a b)
@@ -172,6 +178,25 @@ record CCC o m e : Set (lsuc (o ⊔ m ⊔ e)) where
   pair-π = eq-sym (pair-unique π₁ π₂ (id _) isPair-π₁-id isPair-π₂-id)
 
   ---------------------------------------------------------------------------
+  -- Derived laws for lifting
+  ---------------------------------------------------------------------------
+
+  comp-lift-lift : ∀{a b c d} (f : Hom b c) (g : Hom a b)
+    → Eq (comp (lift f) (lift g)) (lift (comp f g) {d})
+  comp-lift-lift {a} {b} {c} {d} f g = begin
+      comp (pair (comp f π₁) π₂) (pair (comp g π₁) π₂)  ≈⟨ pair-nat _ _ _ ⟩
+      pair (comp (comp f π₁) (pair (comp g π₁) π₂))
+           (comp π₂ (pair (comp g π₁) π₂))              ≈⟨ pair-cong (assoc _ _ _) β-π₂ ⟩
+      pair (comp f (comp π₁ (pair (comp g π₁) π₂))) π₂  ≈⟨ pair-cong (comp-cong eq-refl β-π₁) eq-refl ⟩
+      pair (comp f (comp g π₁)) π₂                      ≈⟨ pair-cong (eq-sym (assoc _ _ _)) eq-refl ⟩
+      pair (comp (comp f g) π₁) π₂
+      ∎ where open EqR (Homs _ _)
+
+  lift-comp : ∀{a b c d} (f : Hom b c) (g : Hom a b)
+    → Eq (lift (comp f g) {d}) (comp (lift f) (lift g))
+  lift-comp {a} {b} {c} {d} f g = eq-sym (comp-lift-lift f g)
+
+  ---------------------------------------------------------------------------
   -- Derived laws for exponentials
   ---------------------------------------------------------------------------
 
@@ -182,35 +207,39 @@ record CCC o m e : Set (lsuc (o ⊔ m ⊔ e)) where
     → Eq (curry f) (curry f')
   curry-cong {a} {b} {c} {f} {f'} e = curry-unique f' (curry f) eq
     where
-    eq : Eq (comp apply (pair (comp (curry f) π₁) π₂)) f'
+    eq : Eq (comp apply (lift (curry f))) f'
     eq = eq-trans (β-apply f) e
 
   -- Naturality law for currying
 
   curry-nat : ∀{a b c d} (f : Hom (Prod c a) b) (h : Hom d c)
     → Eq (comp (curry f) h)
-         (curry (comp f (pair (comp h π₁) π₂)))
+         (curry (comp f (lift h)))
   curry-nat {a} {b} {c} {d} f h =
-      curry-unique (comp f (pair (comp h π₁) π₂)) (comp (curry f) h) eq
+      curry-unique (comp f (lift h)) (comp (curry f) h) eq
     where
-    eq : Eq (comp apply (pair (comp (comp (curry f) h) π₁) π₂))
-            (comp f (pair (comp h π₁) π₂))
-    eq = {!!}
+    eq : Eq (comp apply (lift (comp (curry f) h)))
+            (comp f (lift h))
+    eq = begin
+      comp apply (lift (comp (curry f) h))         ≈⟨ comp-cong eq-refl (lift-comp _ _) ⟩
+      comp apply (comp (lift (curry f)) (lift h))  ≈⟨ eq-sym (assoc _ _ _) ⟩
+      comp (comp apply (lift (curry f))) (lift h)  ≈⟨ comp-cong (β-apply _) eq-refl ⟩
+      comp f (lift h) ∎ where open EqR (Homs _ _)
 
 
   -- Lemma: id is a currying of the apply morphism
 
   isCurry-apply-id : ∀ {a b} → IsCurry apply (id (Arr a b))
   isCurry-apply-id {a} {b} = begin
-    comp apply (pair (comp (id (Arr a b)) π₁) π₂) ≈⟨ comp-cong eq-refl
+    comp apply (lift (id (Arr a b)))  ≈⟨ comp-cong eq-refl
 
      (begin′
-      pair (comp (id (Arr a b)) π₁) π₂ ≈⟨ pair-cong (id-l _) eq-refl ⟩′
-      pair π₁ π₂                       ≈⟨ pair-π ⟩′
+      lift (id (Arr a b))             ≈⟨ pair-cong (id-l _) eq-refl ⟩′
+      pair π₁ π₂                      ≈⟨ pair-π ⟩′
       id _
       ∎′ )⟩
 
-    comp apply (id _)                            ≈⟨ id-r _ ⟩
+    comp apply (id _)                 ≈⟨ id-r _ ⟩
     apply
     ∎ where
       open EqR (Homs _ _)
@@ -257,7 +286,7 @@ module Sound {o m e} (C : CCC o m e) where
   ⟪ unit ⟫          = Cat.unit-unique _
   ⟪ apply-curry ⟫   = {!Cat.β-apply _ !}
   ⟪ curry-apply ⟫   = Cat.curry-apply
-  ⟪ curry-comp ⟫    = {!!}
+  ⟪ curry-comp ⟫    = {!Cat.curry-nat ⦅ ? ⦆ ⦅ ? ⦆ !}
   ⟪ eq-cong e e' ⟫  = Cat.comp-cong ⟪ e ⟫ ⟪ e' ⟫
   ⟪ eq-refl ⟫       = Cat.eq-refl
   ⟪ eq-sym e ⟫      = Cat.eq-sym ⟪ e ⟫
