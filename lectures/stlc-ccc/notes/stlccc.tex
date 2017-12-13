@@ -1,0 +1,158 @@
+\documentclass[a4paper]{scrartcl}
+
+\usepackage{amsmath}
+\usepackage[all]{xy}
+
+\title{From the simply-typed lambda-calculus to
+  cartesian closed categories}
+\author{Andreas Abel}
+\date{December 2017}
+
+\newcommand{\wttm}{\ensuremath{\mathsf{Tm}\,\Gamma\,a}}
+\newcommand{\Set}{\mathsf{Set}}
+\newcommand{\Ob}{\mathsf{Ob}}
+\newcommand{\Hom}{\mathsf{Hom}}
+\newcommand{\tid}{\mathsf{id}}
+\newcommand{\To}{\Rightarrow}
+\newcommand{\too}{\longrightarrow}
+\newcommand{\tcurry}{\mathsf{curry}}
+\newcommand{\tapply}{\mathsf{apply}}
+
+
+\begin{document}
+\maketitle
+
+Outline of the transformation.
+\begin{enumerate}
+\item Simply-typed lambda-calculus (named variables).
+\item Explicit substitutions and judgemental equality.
+\item Nameless (de Bruijn) presentation.
+\item Removing the judgement for well-typed variables: $0$ is the only
+  variable, the others are represented using the weakening
+  substitution.
+\item Conflate contexts and types, substitutions and terms: we arive
+  at an internal language for cartesian closed categories.
+\end{enumerate}
+
+\clearpage
+
+\section{Exercises (Pen and Paper)}
+
+\subsection{Simply-typed lambda-calculus with explicit substitutions}
+
+\begin{enumerate}
+\item Write down the typing rules for simply-typed lambda-calculus.
+\item Write down the typing rules for substitutions.
+\item Write down the equality rules.
+  \begin{enumerate}
+  \item $\beta$- and $\eta$-equality.
+  \item Rules for the propagation of explicit substitutions into
+    terms.
+  \item Rules for the composition of substitutions.
+  \end{enumerate}
+\end{enumerate}
+
+\subsection{Categories}
+
+\begin{enumerate}
+
+\item Category of monoids.
+  \begin{enumerate}
+  \item Define the category of (small) monoids (where the carrier of
+    the monoid is a set).
+  \item Show that the length function for lists is a monoid monomorphims.
+  \end{enumerate}
+
+\item Category of categories.
+  \begin{enumerate}
+  \item Generalize to notion of monoid morphism to the concept of
+    morphism between categories.
+  \item Show that the (small) categories (where the objects form a
+    set) for a category themselves.  (This category is large in the
+    sense that objects form a class.)
+  \end{enumerate}
+
+\end{enumerate}
+
+\subsection{Products}
+
+\newcommand{\C}{\mathcal{C}}
+
+\begin{enumerate}
+\item Define the product in the category of monoids.
+\item Let $1$ denote the terminal object of some category $\C$.
+  Show that the following span is a product of $A$ and $\top$.
+\[
+\xymatrix{
+  A & A \ar[l]_{\tid} \ar[r]^{!} & 1
+}
+\]
+\end{enumerate}
+
+\subsection{Cartesian closed categories}
+
+Recall $\tapply : (A \To B) \times A \too B$ and
+$\tcurry\, f : C \too (A \To B)$ for $f : C \times A \too B$.
+\begin{enumerate}
+\item Show $\tcurry\,\tapply = \tid$.
+\item Show $A \cong (1 \To A)$
+\end{enumerate}
+
+\clearpage
+
+\section{Exercises (Agda)}
+
+\subsection{Simply-typed lambda-calculus in Agda.}
+
+\begin{enumerate}
+\item Represent simply-typed terms in Agda, using de Bruijn indices.
+  \begin{enumerate}
+  \item Code simple types $a$ and contexts $\Gamma$ as data types.
+  \item Define well-typed variables as indexed data type
+    $\mathsf{Var}\,\Gamma\,a$.
+  \item Define well-typed terms as indexed data type \wttm.
+  \end{enumerate}
+\item Add explicit substitutions via an indexed data type
+  $\mathsf{Sub}\,\Gamma\,\Delta$.
+\item Define an equality judgement as relation between well-typed
+  terms: $\_\cong\_ : \wttm \to \wttm \to \mathsf{Set}$.
+  Each rule is one constructor of this indexed data type.
+\item Likewise, implement an equality judgement for well-typed substitutions.
+\end{enumerate}
+
+\subsection{CCCs in Agda}
+\begin{enumerate}
+\item An E-category is a category with an equivalence relation on
+  homsets.  Define the notion of E-category in Agda.
+  \begin{enumerate}
+  \item There is a $\Set$ of objects $\Ob$.
+  \item For each two objects $a,b : \Ob$
+    there is a $\Set$ of (homo)morphisms $\Hom\,a\,b$ from $a$ to $b$.
+  \item There is an equivalence relation on $\Hom\,a\,b$ (for each
+    $a,b : \Ob$).
+  \item There is an associative morphism composition $f \circ g : Hom\,a\,c$ for each
+    $f : \Hom\,b\,c$ and $g : \Hom\,a\,b$.
+  \item Composition respects equality.
+  \item There are morphisms $\tid\,a$ for each $a : \Ob$ which are
+    left- and right units for composition.
+  \end{enumerate}
+\item Add products and terminal objects.
+\item Add exponentials.
+\end{enumerate}
+
+\subsection{Interpretation of STLC in CCCs}
+\begin{enumerate}
+\item Fix an arbitrary CCC.
+\item Write an interpretation of types and contexts as objects in the CCC.
+\item Write an interpretation of well-typed terms and substitutions as
+  morphims in the CCC.
+\item Write an interpretation of judgemental equality as equality of
+  morphisms in the CCC.
+  \begin{itemize}
+  \item First, prove each rule of judgemental equality as theorem
+    about morphisms in a CCC.
+  \item Then, map the rules to these theorems.
+  \end{itemize}
+\end{enumerate}
+
+\end{document}
