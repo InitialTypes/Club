@@ -284,9 +284,9 @@ module Sound {o m e} (C : CCC o m e) where
   ⟪ id-pair ⟫       = Cat.eq-sym Cat.pair-π
   ⟪ pair-comp ⟫     = Cat.pair-nat _ _ _
   ⟪ unit ⟫          = Cat.unit-unique _
-  ⟪ apply-curry ⟫   = {!Cat.β-apply _ !}
+  ⟪ apply-curry ⟫   = Cat.β-apply _
   ⟪ curry-apply ⟫   = Cat.curry-apply
-  ⟪ curry-comp ⟫    = {!Cat.curry-nat ⦅ ? ⦆ ⦅ ? ⦆ !}
+  ⟪ curry-comp ⟫    = Cat.curry-nat _ _
   ⟪ eq-cong e e' ⟫  = Cat.comp-cong ⟪ e ⟫ ⟪ e' ⟫
   ⟪ eq-refl ⟫       = Cat.eq-refl
   ⟪ eq-sym e ⟫      = Cat.eq-sym ⟪ e ⟫

@@ -37,8 +37,12 @@ data Hom : (a b : Ty) → Set where
 _⊗_ : ∀{a b c d} → Hom a b → Hom c d → Hom (a * c) (b * d)  -- \ o x
 f ⊗ g = pair (f ∘ fst) (g ∘ snd)
 
+-- lift f = f ⊗ id
+lift : ∀{c a b} → Hom a b → Hom (a * c) (b * c)
+lift f = pair (f ∘ fst) snd
+
 uncurry : ∀ {a b c} → Hom c (a ⇒ b) → Hom (c * a) b
-uncurry f = apply ∘ (f ⊗ id)
+uncurry f = apply ∘ lift f
 
 -- Equalities
 
@@ -87,7 +91,7 @@ data _~_ : ∀ {a b} (f g : Hom a b) → Set where
   -- The β law.
 
   apply-curry : ∀{a b c} {f : Hom (c * a) b}
-    → apply ∘ (curry f ⊗ id) ~ f
+    → apply ∘ lift (curry f) ~ f
 
   -- The η law.
 
@@ -97,7 +101,7 @@ data _~_ : ∀ {a b} (f g : Hom a b) → Set where
   -- The naturality law.
 
   curry-comp : ∀{a b c d} {h : Hom d c} {f : Hom (c * a) b}
-    → curry f ∘ h ~ curry (f ∘ (h ⊗ id))
+    → curry f ∘ h ~ curry (f ∘ lift h)
 
   -- Congruence laws:
 
@@ -134,10 +138,10 @@ homSetoid a b .isEquivalence .trans = eq-trans
 -- A more general η-law.
 
 curry-apply' : ∀{a b c} (f : Hom c (a ⇒ b))
-  → curry (apply ∘ (f ⊗ id)) ~ f
+  → curry (apply ∘ lift f) ~ f
 
 curry-apply' f = begin
-  curry (apply ∘ (f ⊗ id)) ≈⟨ eq-sym curry-comp ⟩
+  curry (apply ∘ lift f)   ≈⟨ eq-sym curry-comp ⟩
   curry apply ∘ f          ≈⟨ eq-cong curry-apply eq-refl ⟩
   id ∘ f                   ≈⟨ id-l ⟩
   f
