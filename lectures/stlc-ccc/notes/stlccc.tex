@@ -25,13 +25,13 @@
 Outline of the transformation.
 \begin{enumerate}
 \item Simply-typed lambda-calculus (named variables).
-\item Explicit substitutions and judgemental equality.
+\item Explicit substitutions and judgmental equality.
 \item Nameless (de Bruijn) presentation.
 \item Removing the judgement for well-typed variables: $0$ is the only
   variable, the others are represented using the weakening
   substitution.
-\item Conflate contexts and types, substitutions and terms: we arive
-  at an internal language for cartesian closed categories.
+\item Conflate contexts and types, substitutions and terms: we arrive
+  at an internal language for Cartesian closed categories.
 \end{enumerate}
 
 \clearpage
@@ -60,7 +60,7 @@ Outline of the transformation.
   \begin{enumerate}
   \item Define the category of (small) monoids (where the carrier of
     the monoid is a set).
-  \item Show that the length function for lists is a monoid monomorphims.
+  \item Show that the length function for lists is a monoid morphism.
   \end{enumerate}
 
 \item Category of categories.
@@ -81,7 +81,7 @@ Outline of the transformation.
 \begin{enumerate}
 \item Define the product in the category of monoids.
 \item Let $1$ denote the terminal object of some category $\C$.
-  Show that the following span is a product of $A$ and $\top$.
+  Show that the following span is a product of $A$ and $1$.
 \[
 \xymatrix{
   A & A \ar[l]_{\tid} \ar[r]^{!} & 1
@@ -115,7 +115,7 @@ $\tcurry\, f : C \too (A \To B)$ for $f : C \times A \too B$.
 \item Add explicit substitutions via an indexed data type
   $\mathsf{Sub}\,\Gamma\,\Delta$.
 \item Define an equality judgement as relation between well-typed
-  terms: $\_\cong\_ : \wttm \to \wttm \to \mathsf{Set}$.
+  terms: ${\_{\cong}\_} : \wttm \to \wttm \to \mathsf{Set}$.
   Each rule is one constructor of this indexed data type.
 \item Likewise, implement an equality judgement for well-typed substitutions.
 \end{enumerate}
@@ -130,7 +130,7 @@ $\tcurry\, f : C \too (A \To B)$ for $f : C \times A \too B$.
     there is a $\Set$ of (homo)morphisms $\Hom\,a\,b$ from $a$ to $b$.
   \item There is an equivalence relation on $\Hom\,a\,b$ (for each
     $a,b : \Ob$).
-  \item There is an associative morphism composition $f \circ g : Hom\,a\,c$ for each
+  \item There is an associative morphism composition $f \circ g : \Hom\,a\,c$ for each
     $f : \Hom\,b\,c$ and $g : \Hom\,a\,b$.
   \item Composition respects equality.
   \item There are morphisms $\tid\,a$ for each $a : \Ob$ which are
@@ -145,11 +145,11 @@ $\tcurry\, f : C \too (A \To B)$ for $f : C \times A \too B$.
 \item Fix an arbitrary CCC.
 \item Write an interpretation of types and contexts as objects in the CCC.
 \item Write an interpretation of well-typed terms and substitutions as
-  morphims in the CCC.
-\item Write an interpretation of judgemental equality as equality of
+  morphism in the CCC.
+\item Write an interpretation of judgmental equality as equality of
   morphisms in the CCC.
   \begin{itemize}
-  \item First, prove each rule of judgemental equality as theorem
+  \item First, prove each rule of judgmental equality as theorem
     about morphisms in a CCC.
   \item Then, map the rules to these theorems.
   \end{itemize}
