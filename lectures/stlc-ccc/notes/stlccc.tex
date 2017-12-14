@@ -65,10 +65,10 @@ Outline of the transformation.
 
 \item Category of categories.
   \begin{enumerate}
-  \item Generalize to notion of monoid morphism to the concept of
+  \item Generalize the notion of monoid morphism to the concept of
     morphism between categories.
   \item Show that the (small) categories (where the objects form a
-    set) for a category themselves.  (This category is large in the
+    set) form a category themselves.  (This category is large in the
     sense that objects form a class.)
   \end{enumerate}
 
@@ -95,14 +95,14 @@ Recall $\tapply : (A \To B) \times A \too B$ and
 $\tcurry\, f : C \too (A \To B)$ for $f : C \times A \too B$.
 \begin{enumerate}
 \item Show $\tcurry\,\tapply = \tid$.
-\item Show $A \cong (1 \To A)$
+\item Show $A \cong (1 \To A)$.
 \end{enumerate}
 
 \clearpage
 
 \section{Exercises (Agda)}
 
-\subsection{Simply-typed lambda-calculus in Agda.}
+\subsection{Simply-typed lambda-calculus in Agda}
 
 \begin{enumerate}
 \item Represent simply-typed terms in Agda, using de Bruijn indices.
@@ -134,7 +134,7 @@ $\tcurry\, f : C \too (A \To B)$ for $f : C \times A \too B$.
     $f : \Hom\,b\,c$ and $g : \Hom\,a\,b$.
   \item Composition respects equality.
   \item There are morphisms $\tid\,a$ for each $a : \Ob$ which are
-    left- and right units for composition.
+    left and right units for composition.
   \end{enumerate}
 \item Add products and terminal objects.
 \item Add exponentials.
@@ -145,11 +145,11 @@ $\tcurry\, f : C \too (A \To B)$ for $f : C \times A \too B$.
 \item Fix an arbitrary CCC.
 \item Write an interpretation of types and contexts as objects in the CCC.
 \item Write an interpretation of well-typed terms and substitutions as
-  morphism in the CCC.
+  morphisms in the CCC.
 \item Write an interpretation of judgmental equality as equality of
   morphisms in the CCC.
   \begin{itemize}
-  \item First, prove each rule of judgmental equality as theorem
+  \item First, prove each rule of judgmental equality as a theorem
     about morphisms in a CCC.
   \item Then, map the rules to these theorems.
   \end{itemize}
