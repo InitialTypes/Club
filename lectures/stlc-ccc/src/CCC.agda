@@ -196,6 +196,27 @@ record CCC o m e : Set (lsuc (o ⊔ m ⊔ e)) where
     → Eq (lift (comp f g) {d}) (comp (lift f) (lift g))
   lift-comp {a} {b} {c} {d} f g = eq-sym (comp-lift-lift f g)
 
+  comp-lift-pair : ∀{a b c d} (f : Hom b c) (g : Hom a b) (h : Hom a d)
+    → Eq (comp (lift f) (pair g h)) (pair (comp f g) h)
+  comp-lift-pair {a} {b} {c} {d} f g h = begin
+    comp (pair (comp f π₁) π₂) (pair g h)                   ≈⟨ pair-nat _ _ _ ⟩
+    pair (comp (comp f π₁) (pair g h)) (comp π₂ (pair g h)) ≈⟨ pair-cong (assoc _ _ _) β-π₂ ⟩
+    pair (comp f (comp π₁ (pair g h))) h                   ≈⟨ pair-cong (comp-cong eq-refl β-π₁) eq-refl ⟩
+    pair (comp f g) h
+    ∎ where open EqR (Homs _ _)
+
+  pair-to-lift : ∀{a b c} (f : Hom a b) (g : Hom a c)
+    → Eq (pair f g) (comp (lift f) (pair (id _) g))
+  pair-to-lift {a} {b} {c} f g = begin
+    pair f g                       ≈⟨ pair-cong (eq-sym (id-r _)) eq-refl ⟩
+    pair (comp f (id _)) g         ≈⟨ eq-sym (comp-lift-pair _ _ _) ⟩
+    comp (lift f) (pair (id _) g)
+    ∎ where open EqR (Homs _ _)
+
+  π₁-lift : ∀{a b c} (f : Hom a c)
+    → Eq (comp π₁ (lift f)) (comp f (π₁ {a} {b}))
+  π₁-lift {a} {b} {c} f = β-π₁
+
   ---------------------------------------------------------------------------
   -- Derived laws for exponentials
   ---------------------------------------------------------------------------
