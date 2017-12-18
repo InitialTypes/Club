@@ -308,7 +308,9 @@ module Sound {o m e} (C : CCC o m e) where
   ⟪ apply-curry ⟫   = Cat.β-apply _
   ⟪ curry-apply ⟫   = Cat.curry-apply
   ⟪ curry-comp ⟫    = Cat.curry-nat _ _
-  ⟪ eq-cong e e' ⟫  = Cat.comp-cong ⟪ e ⟫ ⟪ e' ⟫
+  ⟪ eq-comp e e' ⟫  = Cat.comp-cong ⟪ e ⟫ ⟪ e' ⟫
+  ⟪ eq-pair e e' ⟫  = Cat.pair-cong ⟪ e ⟫ ⟪ e' ⟫
+  ⟪ eq-curry e ⟫    = Cat.curry-cong ⟪ e ⟫
   ⟪ eq-refl ⟫       = Cat.eq-refl
   ⟪ eq-sym e ⟫      = Cat.eq-sym ⟪ e ⟫
   ⟪ eq-trans e e' ⟫ = Cat.eq-trans ⟪ e ⟫ ⟪ e' ⟫

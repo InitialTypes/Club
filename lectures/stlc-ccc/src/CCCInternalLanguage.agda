@@ -5,7 +5,7 @@ module CCCInternalLanguage where
 -- Setoid equality reasoning.
 
 open import Relation.Binary using (Setoid; IsEquivalence); open Setoid; open IsEquivalence
-import Relation.Binary.EqReasoning as EqR
+import Relation.Binary.SetoidReasoning as SetoidR
 
 -- We use types as objects.
 
@@ -105,10 +105,19 @@ data _~_ : ∀ {a b} (f g : Hom a b) → Set where
 
   -- Congruence laws:
 
-  eq-cong : ∀{a b c} {f f' : Hom b c} {g g' : Hom a b}
+  eq-comp : ∀{a b c} {f f' : Hom b c} {g g' : Hom a b}
     → f ~ f'
     → g ~ g'
     → f ∘ g ~ f' ∘ g'
+
+  eq-pair : ∀{a b c} {f f' : Hom a b} {g g' : Hom a c}
+    → f ~ f'
+    → g ~ g'
+    → pair f g ~ pair f' g'
+
+  eq-curry : ∀{a b c} {f f' : Hom (c * a) b}
+    → f ~ f'
+    → curry f ~ curry f'
 
   -- Equivalence laws:
 
@@ -135,14 +144,68 @@ homSetoid a b .isEquivalence .trans = eq-trans
 
 -- Derived laws.
 
+open SetoidR
+
 -- A more general η-law.
 
 curry-apply' : ∀{a b c} (f : Hom c (a ⇒ b))
   → curry (apply ∘ lift f) ~ f
 
-curry-apply' f = begin
+curry-apply' f = begin⟨ homSetoid _ _ ⟩
   curry (apply ∘ lift f)   ≈⟨ eq-sym curry-comp ⟩
-  curry apply ∘ f          ≈⟨ eq-cong curry-apply eq-refl ⟩
+  curry apply ∘ f          ≈⟨ eq-comp curry-apply eq-refl ⟩
   id ∘ f                   ≈⟨ id-l ⟩
   f
-  ∎ where open EqR (homSetoid _ _)
+  ∎
+
+-- Contraction of lifting and pairing.
+
+lift-pair : ∀ {a b c} (f : Hom c b) (g : Hom c a)
+  → lift f ∘ pair id g ~ pair f g
+lift-pair f g = begin⟨ homSetoid _ _ ⟩
+    lift f ∘ pair id g
+  ≈⟨ pair-comp ⟩
+    pair (f ∘ fst ∘ pair id g) (snd ∘ pair id g)
+  ≈⟨ eq-pair
+       (begin⟨ homSetoid _ _ ⟩
+         f ∘ fst ∘ pair id g     ≈⟨ assoc ⟩
+         f ∘ (fst ∘ pair id g)   ≈⟨ eq-comp eq-refl fst-pair ⟩
+         f ∘ id                  ≈⟨ id-r ⟩
+         f                       ∎)
+       snd-pair ⟩
+    pair f g
+  ∎
+
+-- A more familiar β-law.
+
+beta : ∀ {a b c} (f : Hom (c * a) b) (g : Hom c a)
+  → apply ∘ pair (curry f) g ~ f ∘ pair id g
+beta f g = begin⟨ homSetoid _ _ ⟩
+    apply ∘ pair (curry f) g
+  ≈⟨ eq-comp eq-refl (eq-sym (lift-pair (curry f) g)) ⟩
+    apply ∘ (lift (curry f) ∘ pair id g)
+  ≈⟨ eq-sym assoc ⟩
+    apply ∘ lift (curry f) ∘ pair id g
+  ≈⟨ eq-comp apply-curry eq-refl ⟩
+    f ∘ pair id g
+  ∎
+
+-- Uniqueness properties for the various mediating morphisms.
+
+pair-unique : ∀ {a b c} (f : Hom c a) (g : Hom c b) (h : Hom c (a * b)) →
+              fst ∘ h ~ f → snd ∘ h ~ g → h ~ pair f g
+pair-unique f g h hyp₁ hyp₂ = begin⟨ homSetoid _ _ ⟩
+  h                          ≈⟨ eq-sym (id-l) ⟩
+  id ∘ h                     ≈⟨ eq-comp id-pair eq-refl ⟩
+  pair fst snd ∘ h           ≈⟨ pair-comp ⟩
+  pair (fst ∘ h) (snd ∘ h)   ≈⟨ eq-pair hyp₁ hyp₂ ⟩
+  pair f g                   ∎
+
+curry-unique : ∀ {a b c} (f : Hom (c * a) b) (h : Hom c (a ⇒ b)) →
+               apply ∘ lift h ~ f → h ~ curry f
+curry-unique f h hyp = begin⟨ homSetoid _ _ ⟩
+  h                      ≈⟨ eq-sym id-l ⟩
+  id ∘ h                 ≈⟨ eq-comp (eq-sym curry-apply) eq-refl ⟩
+  curry apply ∘ h        ≈⟨ curry-comp ⟩
+  curry (apply ∘ lift h) ≈⟨ eq-curry hyp ⟩
+  curry f                ∎
