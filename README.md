@@ -1,11 +1,11 @@
 # Initial Types Club
 
-Weekly informal meeting and PhD course at the Department of Computer Science and Engineering, Chalmers and Gothenburg University
+Weekly informal meeting and PhD course _Types and programming languages_ at the Department of Computer Science and Engineering, Chalmers and Gothenburg University
 
 Time: Thursdays, 16.00-17.30
 Room: EDIT 3364
 
-First meeting in 2018: Thursday, 11 January
+First meeting in 2018:  11 January
 
 Schedule: see [Wiki](https://github.com/InitialTypes/Club/wiki)
 
@@ -27,6 +27,8 @@ Intended for:
 - PhD students [PhD course, examiner: Andreas Abel]
 - Junior researchers
 - Anyone else with a strong interest
+
+## Alias: PhD course _Types and programming languages_
 
 PhD students: To get ETCS credit, you need to
 - attend the meetings
