@@ -228,3 +228,61 @@ mutual
 
   seq-refl : ∀{Γ Δ} (s : Sub Γ Δ) → s ≈ s
   seq-refl t = seq-trans (seq-sym seq-id-l) seq-id-l
+
+
+------------------------------------------------------------------------
+-- A translation of the simply-typed lambda calculus to the internal
+-- language of CCCs.
+
+open import CCCInternalLanguage
+import Relation.Binary.EqReasoning as EqR
+
+⟦_⟧ : Cxt → Ty
+⟦ ε ⟧     = 𝟙
+⟦ Γ , a ⟧ = ⟦ Γ ⟧ * a
+
+mutual
+
+  Tm⟦_⟧ : ∀ {Γ a} → Tm Γ a → Hom ⟦ Γ ⟧ a
+  Tm⟦ var₀     ⟧ = snd
+  Tm⟦ abs t    ⟧ = curry Tm⟦ t ⟧
+  Tm⟦ app t t' ⟧ = apply ∘ pair Tm⟦ t ⟧ Tm⟦ t' ⟧
+  Tm⟦ t [ s ]  ⟧ = Tm⟦ t ⟧ ∘ Sub⟦ s ⟧
+
+  Sub⟦_⟧ : ∀ {Γ Δ} → Sub Γ Δ → Hom ⟦ Γ ⟧ ⟦ Δ ⟧
+  Sub⟦ ε      ⟧ = unit
+  Sub⟦ s , t  ⟧ = pair Sub⟦ s ⟧ Tm⟦ t ⟧
+  Sub⟦ wk     ⟧ = fst
+  Sub⟦ id     ⟧ = id
+  Sub⟦ s ∘ s' ⟧ = Sub⟦ s ⟧ ∘ Sub⟦ s' ⟧
+
+mutual
+
+  Tm⟪_⟫ : ∀ {Γ a} {t t' : Tm Γ a} → t ≅ t' → Tm⟦ t ⟧ ~ Tm⟦ t' ⟧
+  Tm⟪ teq-beta       ⟫ = beta _ _
+  Tm⟪ teq-eta        ⟫ = eq-sym (curry-apply' _)
+  Tm⟪ teq-var-s      ⟫ = snd-pair
+  Tm⟪ teq-abs-s      ⟫ = curry-comp
+  Tm⟪ teq-app-s      ⟫ = eq-trans assoc (eq-comp eq-refl pair-comp)
+  Tm⟪ teq-sub-s      ⟫ = assoc
+  Tm⟪ teq-var        ⟫ = eq-refl
+  Tm⟪ teq-abs e      ⟫ = eq-curry Tm⟪ e ⟫
+  Tm⟪ teq-app e e'   ⟫ = eq-comp eq-refl (eq-pair Tm⟪ e ⟫ Tm⟪ e' ⟫)
+  Tm⟪ teq-sub e e'   ⟫ = eq-comp Tm⟪ e ⟫ Sub⟪ e' ⟫
+  Tm⟪ teq-sym e      ⟫ = eq-sym Tm⟪ e ⟫
+  Tm⟪ teq-trans e e' ⟫ = eq-trans Tm⟪ e ⟫ Tm⟪ e' ⟫
+
+  Sub⟪_⟫ : ∀ {Γ Δ} {s s' : Sub Γ Δ} → s ≈ s' → Sub⟦ s ⟧ ~ Sub⟦ s' ⟧
+  Sub⟪ seq-id-l       ⟫ = id-l
+  Sub⟪ seq-id-r       ⟫ = id-r
+  Sub⟪ seq-assoc      ⟫ = assoc
+  Sub⟪ seq-wk-pair    ⟫ = fst-pair
+  Sub⟪ seq-eta-eps    ⟫ = eq-trans unit (eq-sym unit)
+  Sub⟪ seq-eta-pair   ⟫ = id-pair
+  Sub⟪ seq-pair-comp  ⟫ = pair-comp
+  Sub⟪ seq-id         ⟫ = eq-refl
+  Sub⟪ seq-comp e e'  ⟫ = eq-comp Sub⟪ e ⟫ Sub⟪ e' ⟫
+  Sub⟪ seq-wk         ⟫ = eq-refl
+  Sub⟪ seq-pair e e'  ⟫ = eq-pair Sub⟪ e ⟫ Tm⟪ e' ⟫
+  Sub⟪ seq-sym e      ⟫ = eq-sym Sub⟪ e ⟫
+  Sub⟪ seq-trans e e' ⟫ = eq-trans Sub⟪ e ⟫ Sub⟪ e' ⟫
