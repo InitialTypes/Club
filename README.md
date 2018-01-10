@@ -30,9 +30,9 @@ Intended for:
 
 ## Alias: PhD course _Types and programming languages_
 
-PhD students: To get ETCS credit, you need to
+PhD students: To get ECTS credit, you need to
 - attend the meetings
 - hold a lecture and
 - submit the accompanying material (lecture notes/slides/code) to the repo
 
-The amount of ETCS points is estimated as usual by 1.5 ETCS / 40 h.
+The amount of ECTS points is estimated as usual by 1.5 ETCS / 40 h.
