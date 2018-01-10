@@ -35,4 +35,4 @@ PhD students: To get ECTS credit, you need to
 - hold a lecture and
 - submit the accompanying material (lecture notes/slides/code) to the repo
 
-The amount of ECTS points is estimated as usual by 1.5 ETCS / 40 h.
+The amount of ECTS points is estimated as usual by 1.5 ECTS / 40 h.
