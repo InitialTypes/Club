@@ -33,3 +33,7 @@
 - Show that you can get a monoid iso from an equality in monoid type,
      i.e. sends unit to unit and mult to mult.
   -- see Monoid file.
+
+- Paths also give a good notion of equality for coinductive structures.
+  - prove the map-id and eta laws for streams
+  -- see Stream file.
