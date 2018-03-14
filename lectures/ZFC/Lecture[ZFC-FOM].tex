@@ -1,0 +1,288 @@
+\documentclass{scrartcl}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage[english]{babel}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage[mathscr]{eucal}
+\usepackage[linkcolor=darkred,colorlinks,pdfpagelabels,pdftex]{hyperref}
+\usepackage{color}
+
+\definecolor{darkred}{rgb}{0.5,0,0}
+
+\theoremstyle{definition}
+\newtheorem{Def}{Definition}
+
+\theoremstyle{plain}
+\newtheorem{Lma}{Lemma}
+\newtheorem{Prp}{Proposition}
+\newtheorem{Thm}{Theorem}
+\newtheorem{Cor}{Corollary}
+
+\theoremstyle{remark}
+\newtheorem{Rem}{Remark}
+
+\DeclareMathOperator{\T}{T}
+\newcommand{\N}{\ensuremath{\mathbb{N}}}
+\newcommand{\Z}{\ensuremath{\mathbb{Z}}}
+\newcommand{\Q}{\ensuremath{\mathbb{Q}}}
+\newcommand{\R}{\ensuremath{\mathbb{R}}}
+\newcommand{\C}{\ensuremath{\mathbb{C}}}
+\renewcommand{\L}{\ensuremath{\mathscr{L}}}
+\newcommand{\ZFC}{\ensuremath{\mathrm{ZFC}}}
+\newcommand{\limp}{\rightarrow}
+\newcommand{\liff}{\leftrightarrow}
+\newcommand{\Pow}{\mathcal{P}}
+\newcommand{\sep}{\,|\,}
+\newcommand{\eqdef}{:=}
+\newcommand{\quot}[2]{#1/\!\!#2}
+
+\DeclareMathOperator{\Rel}{Rel}
+\DeclareMathOperator{\Ind}{Ind}
+\DeclareMathOperator{\Trans}{Trans}
+\DeclareMathOperator{\Ord}{Ord}
+\DeclareMathOperator{\Eq}{Eq}
+
+\title{ZFC as Foundations of Mathematics}
+\date{2018-02-08}
+
+\begin{document}
+
+\begin{abstract}
+  These are the notes to the lecture on $\ZFC$ as a foundation of mathematics given as part of the examination on the course ``Types and programming languages'' (the formal PhD-course in the Initial Types Club) at Chalmers university of technology and Gothenburg university in spring 2018.
+
+  The material in these notes is mainly taken from \cite{jech:2002}, \cite{moschovakis:2006} and \cite{aczel_rathjen:2001}. Since the it is mainly intended to be orally presented, these notes are somewhat sketchy. In particular, the treatment of parentheses will be sloppy.
+\end{abstract}
+
+\setcounter{secnumdepth}{0}
+
+\section*{Outline}
+\label{sec:outline}
+
+Two topics on $\ZFC$ as a foundational theory of mathematics:
+\begin{itemize}
+\item Construction of ordered pairs, Cartesian products, sets of functions and quotient sets.
+\item Construction of the natural numbers.
+\end{itemize}
+
+\setcounter{secnumdepth}{2}
+
+\tableofcontents
+
+\section{The language of ZFC}
+\label{sec:lang}
+
+We consider $\ZFC$ as a theory in first-order logic with equality. The language of $\ZFC$ has only one non-logical symbol, the binary relation symbol $\in$. As such, the language contains no closed or complex terms.
+
+We will however use defined concepts in this language, many of which will be usable like closed terms in that we can prove in $\ZFC$ that they are satisfied by a unique object. The (probably) simplest example would be that of the empty set, which we define as
+\begin{align*}
+  [x = \varnothing] \text{ is an abbreviation of the formula } \forall y (y \notin x)
+\end{align*}
+(where of course $x$ and $y$ are distinct variables). It can be shown that
+\begin{align*}
+  \ZFC \vdash \exists x [x = \varnothing] \land \forall y ([y = \varnothing] \limp y = x)\mbox{.}
+\end{align*}
+We therefore informally use the symbol $\varnothing$ as a constant of the language. The same goes for many other common notions (like $\subseteq$, $\times$ and $\N$) (though there is a small issue here, since $\varnothing$ and $\subseteq$ are in some sense purely set-theoretic concepts; thus it does not matter which is the actual longhand of e.g.~$[x \subseteq y]$, since they can all be shown (in $\ZFC$) to be equivalent or define the same sets. This is not so for $\times$ and $\N$; it can be shown that there are several different formalisations of these concepts). However, as long as we only use only the properties of these objects which they are supposed to formalise (see e.g.~the definitions of Cartesian products and $\N$), the propositions are equivalent. If we include ``lower-level'' concepts though, we can get some silly results like $2 \in \pi$. While most of these constructions will turn out to be unique up to isomorphism, what this means for basic concepts like that of function itself is a bit unclear.
+
+In addition to ``being the empty set'' above, we will (non-exclusively) use the following abbreviations in the axioms which follow:
+\begin{align*}
+  [\varnothing \in x]& \eqdef \forall z (z = \varnothing \limp z \in x)\\
+  [\forall x \in y \, \varphi]& \eqdef \forall x (x \in y \limp \varphi)\\
+  [x \subseteq y]& \eqdef \forall z \in x (z \in y)\\
+  [x \subset y]& \eqdef x \subseteq y \land x  \not= y\\
+\end{align*}
+We will treat other class-functions (such as $\Pow$; see below) like $\varnothing$ (when writing e.g.~$\Pow(x) \in y$). As already mentioned (and used) we will also be sloppy with parentheses and brackets, writing them where it seems most clarifying. The same goes for variable names.
+
+While we will mainly take an external perspective on $\ZFC$, writing $\ZFC \vdash \varphi$ when stating that $\varphi$ is a theorem of $\ZFC$, when doing proofs and similar reasoning (and later also when presenting more complex theorems) we will simplify the process taking an internal perspective; quantifiers etc.~then ranges over the universe of sets.
+
+\subsection{Classes and class-functions}
+\label{subsec:class}
+
+Instead of manipulating formulae one often introduces classes. The class corresponding to a formula is thought of as ``the collection of objects'' satisfying the formula. One then reserves the braces-notation for classes and writes $\{x \sep \varphi\}$ for the class corresponding to $\varphi$, with the convention that certain classes also are sets, as given by the axioms. However, I personally find this practice slightly confusing and will not use it in the following.
+
+A more useful notion is that of a class-function. A class function (as we will use the term) is a formula which $\ZFC$ proves to have functional properties, that is $\varphi(x,y)$ is a class-function if $\ZFC \vdash \forall \bar{x} \exists y (\varphi(\bar{x},y) \land \forall z (\varphi(x,z) \limp z = y))$. We often abbreviate such formulae with a more suggestive notation, treating the abbreviations as function symbols (and constants) of the language (like the example of $\varnothing$ earlier). Also, like all functions, class-functions can be composed to yield new class-functions (e.g.~with the definition $\exists z (\psi(x,z) \land \varphi(z,y))$).
+
+\pagebreak
+
+\section{The axioms}
+\label{sec:axioms}
+
+The following formulae and formula schemata constitute the axioms of $\ZFC$.
+\begin{description}
+\item[Extensionality] $\forall x, y (x = y \liff \forall z (z \in x \liff z \in y))$. Two sets are equal if and only if they have the same members.
+\item[Pairing] $\forall x, y \exists p \forall z (z \in p \liff z = x \lor z = y)$. For any two sets their pair is a set (and hence each singleton is a set). Note that by extensionality this set is unique, whence $\forall z (z \in p \liff z = x \lor z = y)$ is a class-function. We abbreviate this as $[p = \{x,y\}]$ (or $[p = \{x\}]$ if $x = y$).
+\item[Separation (Subsets)] For every formula $\varphi(z,\bar{p})$: $\forall \bar{p}, A \exists B \forall z (z \in B \liff z \in A \land \varphi(z,\bar{p}))$. ``All''\footnote{See Skolem's paradox.} subsets (which can be defined) exists. Once again, uniqueness follows from extensionality and $\forall z (z \in B \liff z \in A \land \varphi(z,\bar{p}))$ is a class-function (in $A,\bar{p}$). We write $[B = \{z \in A \sep \varphi(z,\bar{p})\}]$.
+\item[Union] $\forall A \exists x \forall z (z \in x \liff \exists y \in A (z \in y))$. For every set (of sets) there is a set consisting of the union of its elements. This is also a class-function which we denote $[x = \bigcup A]$. We also write $[x = u \cup v]$ if $A = \{u,v\}$ (from pairing).
+\item[Power Set] $\forall x \exists P \forall z (z \in P \liff z \subseteq x)$. For every set there is a ``power set'' consisting of its subsets. We denote this class-function $[P = \Pow(x)]$.
+\item[Infinity] $\exists I (\varnothing \in I \land \forall z \in I (z \cup \{z\} \in I))$. This axiom states that there is a set which is \emph{inductive} (and in particular at least one set (note that the existence of $\varnothing$ is not required for this to make sense)). We write $\Ind(x)$ (NB: this is not a class-function, but a defined predicate).
+\item[Replacement] For every formula $\varphi(x,z,\bar{p})$: $\forall \bar{p} (\forall x, y, z (\varphi(x,z,\bar{p}) \land \varphi(x,y,\bar{p}) \limp y = z) \limp \forall A \exists B \forall z (z \in B \liff \exists x \in A \varphi(x,z,\bar{p})))$. Essentially, the image of a set under a class-function is a set (i.e.~every class-function restricted to a set is actually a set function), except we have defined class functions to be total, and this is stated ``for those values of the parameters'' which the formula defines a total function.
+\item[Foundation (Regularity)] $\forall x (x \not= \varnothing \limp \exists z \in x (z \cap x = \varnothing))$. This means that the membership-relation $\in$ is well-founded. This is in principle not used for ordinary mathematics.
+\item[Choice] $\forall A (\varnothing \not\in A \land \forall x, y \in A (x \cap y = \varnothing) \limp \exists S (S \subseteq \bigcup A \land \forall x \in A \exists y \in x (x \cap S = \{y\})))$. This is most often given in some more readable formulation like $\forall A, B \forall r \subseteq A \times B (\forall x \in A \exists y \in B (r(x,y)) \limp \exists f : A \longrightarrow B \forall x \in A (r(x,f(A))))$. Relative the other axioms these sentences are equivalent.
+\end{description}
+
+\section{Basic constructions}
+\label{sec:basic}
+
+\subsection{Cartesian products}
+\label{subsec:prod}
+
+First we want a notion of ordered pair (as opposed to the unordered pair $\{x,y\}$). That is, we want a class-function $[z = (x,y)]$ (with the displayed free variables) such that
+\begin{align}
+  \ZFC \vdash \forall x, y, z, u, v (([z = (x,y)] \land [z = (u,v)]) \limp (u = x \land v = y))\label{eq:OP.1}
+\end{align}
+Of course, the smaller the fragment of $\ZFC$ we need to prove this, the better (to some extent). In order to be able to construct Cartesian products of arbitrary sets we need also require that there is some set containing all ordered pairs from the two sets, that is:
+\begin{align}
+  \ZFC \vdash \forall A, B \exists C (\forall x \in A, y \in B ((x,y) \in C))\label{eq:OP.2}
+\end{align}
+We prove there is such a formula and then forget the particular choice; thenceforth we treat $(\cdot,\cdot)$ as a function symbol of the language and only use properties \eqref{eq:OP.1} and \eqref{eq:OP.2}.
+
+The (as far as I know) most common choice is the Kuratowski pair:
+\begin{align*}
+  [z = (x,y)] \eqdef z = \{\{x\},\{x,y\}\}\mbox{.}
+\end{align*}
+We show that it satisfies the above properties.
+\begin{proof}\footnote{This proof is adapted from \cite{aczel_rathjen:2001}. Note that the axioms are only required to show that the pair exists and is unique (i.e.~that the pairing formula is a class function), the rest is pure (and constructive/intuitionistic) logic.}
+  By the pairing and extensionality axioms $[z = \{x,y\}]$ and $[z = \{x\}]$ are class-functions, whence the Kuratowski pairing formula is as well.
+
+  To prove \eqref{eq:OP.1} take $x$, $y$, $u$ and $v$. Assume $(x,y) = (u,v)$. Then, since $\{x\} \in (x,y)$, $\{x\} \in (u,v)$. Thus $\{x\} = \{u\}$ or $\{x\} = \{u,v\}$. In either case $u \in \{x\}$ (since $u \in \{u\}$ and $u \in \{u,v\}$), whence $u = x$. Moreover, $\{x,y\} \in (x,y)$ whence $\{x,y\} = \{u\}$ or $\{x,y\} = \{u,v\}$. Thus we have $y = u \lor (y = u \lor y = v)$. If $y = u = x$ then $(x,y) = \{\{x\}\}$, i.e.~$\{\{x\}\} = \{\{u\},\{u,v\}\}$, whence $\{x\} = \{u,v\}$ and $v = x = y$. In either case $v = y$.
+
+  For \eqref{eq:OP.2}, take $A$ and $B$. Since for $x \in A$, $y \in B$ the sets $\{x\},\{x,y\} \subseteq A \cup B$ we have $\{x\},\{x,y\} \in \Pow(A \cup B)$. Thus $\{\{x\},\{x,y\}\} \in \Pow(\Pow(A \cup B))$.
+\end{proof}
+
+We can now define the Cartesian product by the class-function $[C = A \times B] \eqdef [C = \{z \in \Pow(\Pow(A \cup B)) \sep \exists x \in A \exists y \in B (z = (x,y))\}]$ by separation (as always, uniqueness follows by extensionality).
+
+$n$-tuples and $n$-fold Cartesian products are defined by iteration, e.g.~$(x_1,\dotsc,x_n,x_{n + 1}) = ((x_1,\dotsc,x_n),x_{n + 1})$ and $A_1 \times \dotsb \times A_n \times A_{n + 1} = (A_1 \times \dotsb A_n) \times A_{n + 1}$ (though I am not aware of any consensus regarding whether the iteration should be to the left or right). Note that these constitute one class-function \emph{for each $n$}; the $n$ is not an argument to a single function.
+
+Also, it follows by foundation that $x \not= (x,y) \not= y$ for all $x,y$.
+
+\subsection{Relations and functions}
+\label{subsec:rel}
+
+We identify relations and functions with their graphs. That is
+\begin{align*}
+  \Rel_2(r,A,B) &\eqdef r \subseteq A \times B\\
+  \Rel_n(r,A_1,\dotsc,A_n) &\eqdef r \subseteq A_1 \times \dotsb A_n
+\end{align*}
+and similarly for functions
+\begin{align*}
+  f : A \longrightarrow B \eqdef \Rel_2(f,A,B) \land \forall x \in A \exists y \in B ((x,y) \in f \land \forall z \in B ((x,z) \in f \limp z = y))\mbox{.}
+\end{align*}
+Moreover, we define
+\begin{align*}
+  R(x_1,\dotsc,x_n) &\eqdef (x_1,\dotsc,x_n) \in R\\
+  [f(x) = y] &\eqdef (x,y) \in f
+\end{align*}
+(though we only use this notation for relations and functions, respectively).
+
+With this definition of function, the set of functions between $A$ and $B$ is given by the class-function
+\begin{align*}
+  [F = {}^AB] \eqdef F = \{f \in \Pow(A \times B) \sep f : A \longrightarrow B\}\mbox{.}
+\end{align*}
+For any $A$ and $B$, this set exists by separation and is unique by extensionality. Other common notations for this are $B^A$ and $(A \longrightarrow B)$. Injections, surjections and bijections are then defined as usual.
+
+NB: The codomain is not determined by the function; if $f : A \longrightarrow B$ and $B \subseteq C$, then $f : A \longrightarrow C$ as well. This has some advantages, for instance when constructing functions, but also has disadvantages (e.g.~when doing category theory, morphisms in the category of sets must be something more than just the functions (for instance the pair of the function and its intended codomain)).
+
+\subsection{Quotient sets}
+\label{subsec:quotient}
+
+In $\ZFC$ we can also construct quotient sets of equivalence relations as sets of equivalence classes. Thus we have a binary class function $[x = \quot{A}{\sim}]$ such that, if $\Eq(\sim,A)$ is a formula stating that $\sim$ is an equivalence relation on $A$,
+\begin{align*}
+  \ZFC \vdash &\forall A, \sim (\Eq(\sim,A) \limp (\forall x \in \quot{A}{\sim} (x \not= \varnothing) \land\\
+              &\quad \left(\bigcup \quot{A}{\sim}\right) = A \land \forall x,y \in \quot{A}{\sim} (x \not= y \limp x \cap y = \varnothing)\\
+              &\quad \land \forall a,b \in A (a \sim b \liff \exists x \in \quot{A}{\sim} (a \in x \land b \in x)))\mbox{.}
+\end{align*}
+This is given via the definitions
+\begin{align*}
+  [x = [a]_A] &\eqdef x = \{b \in A \sep b \sim a\}\text{,}\\
+  [Q = \quot{A}{\sim}] &\eqdef Q = \{y \in \Pow(A) \sep \exists a \in A (y = [a]_A)\}\text{.}
+\end{align*}
+Note in particular that a consequence of this construction is that the equality on the quotient set is the ordinary equality.
+
+\section{The natural numbers}
+\label{sec:nat}
+
+The natural numbers should be a triple $(N,0,S)$ satisfying the Peano axioms\footnote{See \cite{peano:1889/1967}}
+\begin{align*}
+  &0 \in N\mbox{,}\\
+  &S : N \longrightarrow N\mbox{,}\\
+  &\forall x, y \in N (S(x) = S(y) \rightarrow x = y)\mbox{,}\\
+  &\forall x \in N (S(n) \not= 0)\mbox{,}\\
+  &\forall A \in \Pow(N) (0 \in A \land \forall x \in A (S(x) \in A) \limp A = N)\mbox{.}
+\end{align*}
+These properties characterise the set of natural numbers up to isomorphism in $\ZFC$\footnote{See \cite{moschovakis:2006}.}. The usual (and in some sense most natural) choice is to identify the natural numbers with the finite ordinal numbers and the set of naturals with the first infinite ordinal. We thus turn briefly to ordinal numbers (which are important in themselves in set theory).
+
+\subsection{Ordinal numbers}
+\label{subsec:ord}
+
+We define transitive sets as follows
+\begin{align*}
+  \Trans(x) \eqdef \forall y \in x \forall z \in y (z \in x)\mbox{.}
+\end{align*}
+Colloquially put, $z \in y \in x \limp z \in x$. An ordinal is a transitive set well-ordered by $\in$:
+\begin{align*}
+  \Ord(\alpha) \eqdef \Trans(\alpha) \land \forall x, y \in \alpha (x \not\in x \land (x \in y \lor y \in x \lor x = y))\\
+  \qquad \land \forall A \in \Pow(\alpha) (A \not= \varnothing \limp \exists x \in A \forall y \in A (x \in y \lor x = y))
+\end{align*}
+Note that only transitivity and linearity are really required of an ordinal; both irreflexivity and well-foundedness then follows by the axiom of foundation.
+
+The ordinals are ``well-ordered'' by $\in$ and the successor is given by the class function
+\begin{align*}
+  [x = \alpha^+] \eqdef x = \alpha \cup \{\alpha\}\mbox{.}
+\end{align*}
+The successor of an ordinal is again an ordinal. $\varnothing$ is an ordinal and the smallest such. We will also use the following straightforward facts about ordinals:
+\begin{enumerate}
+\item Every element of an ordinal is an ordinal.
+\item If $\alpha \subset \beta$ are ordinals, then $\alpha \in \beta$.
+\end{enumerate}
+
+Recall that a set is inductive if it contains $\varnothing$ and is closed under the successor operation, and that the axiom of infinity postulates the existence of an inductive set. It thus seems intuitive that the smallest inductive set is an ordinal which in addition satisfies the Peano axioms above. We thus define the set $\omega$ by the class-function
+\begin{align*}
+  [x = \omega] \eqdef \forall z (z \in x \liff \forall A (\Ind(A) \limp z \in A))\mbox{.}
+\end{align*}
+We show that this is indeed a class function (i.e.~that $\omega$ exists), that $\omega$ is an inductive ordinal and that $(\omega,\varnothing,{\_}^+)$ satisfies the Peano axioms.
+\begin{proof}
+  Let $I$ be some inductive set, the existence of which is guaranteed by the axiom of infinity. Let $a = \{x \in I \sep \forall A (\Ind(A) \limp x \in A)\}$ which exists by the axiom of separation. Then any $x$ such that $\forall A (\Ind(A) \limp x \in A)$ in particular satisfies $x \in I$, whence $x \in a$. Conversely, $x \in a$ implies $\forall A (\Ind(A) \limp x \in A)$ by definition. Hence $a = \omega$. Extensionality shows that $a$ is unique with this property.
+
+  Since $\varnothing \in A$ for all inductive $A$, $\varnothing \in \omega$. Moreover, if $x \in \omega$ then $x \in A$ for all inductive $A$, whence $x^+ \in A$ for all such $A$ by inductivity and hence $x^+ \in \omega$. So $\Ind(\omega)$.
+
+  This also verifies the first two Peano axioms, and the fourth is immediate. To verify the fifth, let $A \subseteq \omega$ be such that $\varnothing \in A$ and $x \in A$ implies $x^+ \in A$. Then $A$ is inductive whence $\omega \subseteq A$ by definition, so $A = \omega$.
+
+  Now let $B = \{x \in \omega \sep x \subseteq \omega\}$. Then $\varnothing \in B$ trivially, and if $y \in B$ then by definition $y \in \omega$ and $y \subseteq \omega$, whence $y^+ = y \cup \{y\} \subseteq \omega$. Hence $B = \omega$ which means that every element of $\omega$ is a subset of $\omega$. This is equivalent to transitivity.
+
+  Let $C = \{x \in \omega \sep \Ord(x)\}$. Since $\varnothing \in C$ and if $x \in C$ then $x^+ \in C$ by above, $C= \omega$. Since the ordinals are linearly ordered by $\in$ and every non-empty set of ordinals has a $\in$-least element, it follows that $\omega$ is well-ordered by $\in$.
+
+  Thus $\omega$ is an ordinal number. It now only remains to verify the third Peano axiom. To this end, let $x,y \in \omega$ and suppose $x^+ = y^+$, that is $x \cup \{x\} = y \cup \{y\}$. Then $x \in y$ or $x = y$, and $y \in x$ or $y = x$. That $x \in y$ and $y \in x$ contradicts the linearity of $\in$ in $\omega$ (and the axiom of foundation), and in all other cases $x = y$. This concludes the proof.
+\end{proof}
+This is not the easiest construction of $\N$, but as $\omega$ is an important object in set theory itself, it seems reasonable to illustrate this. However, similarly to the case of ordered pairs we need not (and perhaps should not) care which particular triple is chosen for $\N$, as long as it satisfies the Peano axioms. For example, while addition, multiplication and the ordering on $\N$ coincides with the particular ones for $\omega$ viewed as an ordinal, they can also be defined by recursion.
+
+\begin{Thm}[Recursion theorem]
+  $\ZFC \vdash \forall A \forall a \in A \forall g : A \longrightarrow A \exists f : N \longrightarrow A (f(0) = a \land f(S(n)) = g(f(n)))$.
+  \begin{proof}
+    Let
+    \begin{align*}
+      D = &\{i \in \Pow(N) \sep 0 \in\ i \land \forall n \in N (S(n) \in i \limp n \in i)\}\text{ and}\\
+      F = &\{p \in \Pow(N \times A) \sep \exists i \in D\\
+      &\qquad (p : i \longrightarrow A \land p(0) = a \land \forall n \in i (S(n) \in i \limp p(S(n)) = g(p(n))))\}\mbox{.}
+    \end{align*}
+    Take $i,j \in D$ and $p,q \in F$ with $p : i \longrightarrow A$ and $q : j \longrightarrow A$. Let $X = \{n \in N \sep n \in i \cap j \limp p(n) = q(n)\}$. By definition of $F$, $p(0) = a = q(0)$ and thereby $0 \in X$. Moreover, if $n \in X$ and $S(n) \in i \cap j$, then $n \in i \cap j$ by definition of $D$, so $p(n) = q(n)$ by the definition of $X$ and hence $p(S(n)) = g(p(n)) = g(q(n)) = q(S(n))$ by the definition of $F$. Hence $X = N$ by induction whence $n \in i \cap j$ entails $p(n) = q(n)$ for all $n \in N$. So any two functions from $F$ agree where they are both defined.
+
+    Now let $p \in F$ and $i \in d$ be such that $p : i \longrightarrow N$. Suppose $n \in i$ and consider $p^{\prime} = p \cup \{(S(n),g(p(n)))\}$ and $i^{\prime} = i \cup \{S(n)\}$. Clearly $i^{\prime} \in D$ and $p^{\prime} \subseteq i^{\prime} \times A$. If $S(n) \in i$ then $i^{\prime} = i$ and $p(S(n)) = g(p(n))$, whence $(S(n),g(p(n))) \in p$ and $p^{\prime} = p$. Otherwise, if $(m,y),(m,z) \in p^{\prime}$ then either $(m,y),(m,z) \in p$, whence $y = z$, or $(m,y) \in p$ and $(m,z) = (S(n),g(b))$ (or the other way around) which contradicts $S(n) \not\in i$, or $(m,y) = (S(n),g(b)) = (m,z)$, whence $y = z$. Hence $p^{\prime} : i^{\prime} \longrightarrow A$. In either case $(0,a) \in p \subseteq p^{\prime}$, and if $m \in i^{\prime}$ is such that $S(m) \in i^{\prime}$ then either $S(m) \in i$ and $p^{\prime}(S(m)) = p(S(m)) = g(p(m)) = g(p^{\prime}(m))$ or $m = n$ and $p^{\prime}(S(m)) = g(p(m))$ by definition. Hence $p^{\prime} \in F$. So the members of $F$ can be extended with a ``next'' value.
+
+    Define $f = \bigcup F$. Then if $x \in f$ there is some $p \in F$ with $x \in p$, whence $x \in N \times A$. So $f \subseteq N \times A$ is a relation. Let $d = \{n \in N \sep \exists b \in A ((n,b) \in f)\}$. Since $\{0\} \in D$ and hence $\{(0,a)\} \in F$ we have $(0,a) \in f$ and $0 \in d$. Moreover, suppose $n \in d$. Then $(n,b) \in f$ for some $b \in A$, that is $n \in i$ and $p(n) = b$ for some $i \in D$ and $p \in F$ with $p : i \longrightarrow A$. By above there is a $p^{\prime} \in F$ such that $(S(n),g(b)) \in p^{\prime}$, whence $(S(n),g(b)) \in f$ and $S(n) \in d$. Thus $d = N$.
+
+    Now let $(n,b),(n,c) \in f$. Then $p(n) = b$ and $q(n) = c$ for some $p,q \in F$. If $i,j \in D$ are such that $p : i \longrightarrow A$ and $q : j \longrightarrow A$, then $n \in i \cap j$ and $b = p(n) = q(n) = c$ by the firs paragraph. Hence $f : N \longrightarrow A$. As noted in the previous paragraph, $f(0) = a$. Also, for all $n \in N$ there is a $p \in F$ such that $p(n) = f(n)$, whence there is a $p^{\prime} \in F$ with $p^{\prime}(S(n)) = g(p(n))$ and $f(S(n)) = p^{\prime}(S(n)) = g(f(n))$. Thus $f$ satisfies the recursive equations and in particular (since $N \in D$) $f \in F$. If $h : N \longrightarrow A$ also satisfies the recursive equations then $h \in F$ as well, whence $f(n) = g(n)$ for all $n \in N$ by the first paragraph.
+  \end{proof}
+\end{Thm}
+
+\nocite{jech:2002}
+\nocite{moschovakis:2006}
+\nocite{aczel_rathjen:2001}
+
+\bibliographystyle{plain}
+\bibliography{Bibliography}
+
+\end{document}
