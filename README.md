@@ -2,12 +2,13 @@
 
 Weekly informal meeting and PhD course _Types and programming languages_ at the Department of Computer Science and Engineering, Chalmers and Gothenburg University
 
-Time: Thursdays, 16.00-17.30
-Room: EDIT 3364
+- Time: Thursdays, 16.00-17.30
+- Room: EDIT 3364
 
-First meeting in 2018:  11 January
+Academic year 2018/19:
 
-Schedule: see [Wiki](https://github.com/InitialTypes/Club/wiki)
+- First meeting on _Thu, 13 Sep 2018_ (EDIT __8103__)
+- Schedule: see [Wiki](https://github.com/InitialTypes/Club/wiki)
 
 Content:
 - Types and programming languages
