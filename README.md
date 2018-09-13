@@ -9,6 +9,7 @@ Academic year 2018/19:
 
 - First meeting on _Thu, 13 Sep 2018_ (EDIT __8103__)
 - Schedule: see [Wiki](https://github.com/InitialTypes/Club/wiki)
+- Mailing list: <initial-types@lists.chalmers.se> ([subscribe here](https://lists.chalmers.se/mailman/listinfo/initial-types)  to receive course announcements)
 
 Content:
 - Types and programming languages
