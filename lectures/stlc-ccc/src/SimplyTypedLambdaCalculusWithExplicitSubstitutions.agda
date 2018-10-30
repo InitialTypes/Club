@@ -81,7 +81,21 @@ mutual
       → Sub Γ Φ
 
 -- Note: identity and composition are definable by induction on contexts.
-
+--
+-- id {ε}     = ε
+-- id {Γ , a} = wk , var₀
+--
+-- _∘wk : ∀ {Δ Γ a} → Sub Δ Γ → Sub (Δ , a) Γ
+-- _∘wk {Γ = ε}     _       = ε
+-- _∘wk {Γ = _ , _} (r , t) = r ∘wk , t [ wk ]
+-- _∘wk {Γ = _ , _} wk      = wk ∘wk ∘wk , var₀ [ wk ] [ wk ]
+--
+-- wk∘_ : ∀ {Δ Γ a} → Sub Δ (Γ , a) → Sub Δ Γ
+-- wk∘_ (r , _) = r
+-- wk∘_ wk      = wk ∘wk
+--
+-- _∘_ {Φ = ε}     _ _ = ε
+-- _∘_ {Φ = _ , _} r s = wk∘ r ∘ s ,  var₀ [ r ] [ s ]
 
 -- Equational theory.
 
