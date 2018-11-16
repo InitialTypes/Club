@@ -1,0 +1,4 @@
+let plus  (n : nat) : nat → nat = natrec nat n (λ (_ : nat) → suc) in
+let times (n : nat) : nat → nat = natrec nat 0 (λ (_ : nat) → plus n) in
+let fac : nat → nat = natrec nat 1 (λ (n : nat) → times (suc n)) in
+fac

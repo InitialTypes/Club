@@ -1,0 +1,11 @@
+let twice0 (f : nat → nat) (x : nat) : nat = f (f x) in
+let twice1 (f : (nat → nat) → (nat → nat)) (x : nat → nat) : nat → nat = f (f x) in
+let twice2 (f : ((nat → nat) → (nat → nat)) →
+                ((nat → nat) → (nat → nat)))
+           (x : (nat → nat) → (nat → nat)) : (nat → nat) → (nat → nat) = f (f x) in
+let twice3 (f : (((nat → nat) → (nat → nat)) → ((nat → nat) → (nat → nat))) →
+                (((nat → nat) → (nat → nat)) → ((nat → nat) → (nat → nat))))
+           (x : (((nat → nat) → (nat → nat)) → ((nat → nat) → (nat → nat)))) :
+                (((nat → nat) → (nat → nat)) → ((nat → nat) → (nat → nat)))
+      = f (f x) in
+twice3 twice2 twice1 twice0 suc

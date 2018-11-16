@@ -1,0 +1,6 @@
+let twice      (f : nat → nat) (x : nat) : nat = f (f x)           in
+let times4     (f : nat → nat) : nat → nat = twice (twice f)       in
+let times16    (f : nat → nat) : nat → nat = times4 (times4 f)     in
+let times256   (f : nat → nat) : nat → nat = times16 (times16 f)   in
+let times65536 (f : nat → nat) : nat → nat = times256 (times256 f) in
+times16 (times65536 suc)
