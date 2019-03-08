@@ -1,0 +1,260 @@
+\documentclass{scrartcl}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage[mathscr]{eucal}
+\usepackage[linkcolor=darkred,citecolor=darkgreen,colorlinks,pdfpagelabels,pdftex]{hyperref}
+\usepackage{color}
+\usepackage{bussproofs}
+
+\definecolor{darkred}{rgb}{0.5,0,0}
+\definecolor{darkgreen}{rgb}{0.1,0.4,0.2}
+
+\theoremstyle{definition}
+\newtheorem{Def}{Definition}
+
+\theoremstyle{plain}
+\newtheorem{Lma}{Lemma}
+\newtheorem{Prp}{Proposition}
+\newtheorem{Thm}{Theorem}
+\newtheorem{Cor}{Corollary}
+
+\theoremstyle{remark}
+\newtheorem{Rem}{Remark}
+
+%General commands
+\DeclareMathOperator{\T}{T}
+\newcommand{\N}{\ensuremath{\mathbb{N}}}
+\newcommand{\Z}{\ensuremath{\mathbb{Z}}}
+\newcommand{\Q}{\ensuremath{\mathbb{Q}}}
+\newcommand{\R}{\ensuremath{\mathbb{R}}}
+\newcommand{\C}{\ensuremath{\mathbb{C}}}
+\newcommand{\falsum}{\bot}
+\newcommand{\verum}{\top}
+\newcommand{\limp}{\rightarrow}
+\newcommand{\liff}{\leftrightarrow}
+\newcommand{\landor}{\land\mspace{-16mu}\lor}
+\newcommand{\forallexists}{\exists\mspace{-4mu}\forall}
+\newcommand{\bigland}{\bigwedge}
+\newcommand{\biglor}{\bigvee}
+\newcommand{\Exists}{\rotatebox{180}{\ensuremath{\mathbb{E}}}}
+\newcommand{\Forall}{\rotatebox{180}{\ensuremath{\mathbb{A}}}}
+\newcommand{\Wedge}{\ensuremath{\boldsymbol{\wedge}}}
+\newcommand{\Vee}{\ensuremath{\boldsymbol{\vee}}}
+\renewcommand{\=}{=\!\!\!=}
+\newcommand{\num}[1]{\ensuremath{\dot{#1}}}
+\newcommand{\Num}[1]{\ensuremath{\overline{#1}}}
+\newcommand{\GN}[1]{\ensuremath{\ulcorner #1 \urcorner}}
+\newcommand{\sep}{\; | \;}
+\newcommand{\PA}{\ensuremath{\mathrm{PA}}}
+
+\renewcommand{\L}{\ensuremath{\mathcal{L}}}
+\renewcommand{\S}{\ensuremath{\mathrm{S}}}
+\renewcommand{\P}{\ensuremath{\mathcal{P}}}
+
+\DeclareMathOperator{\Term}{Term}
+\DeclareMathOperator{\val}{val}
+\DeclareMathOperator{\Sent}{Sent}
+\DeclareMathOperator{\Sat}{Sat}
+\DeclareMathOperator{\FV}{FV}
+\DeclareMathOperator{\Prf}{Prf}
+
+%Specific commands
+\DeclareMathOperator{\I}{I}
+\DeclareMathOperator{\POS}{POS}
+\DeclareMathOperator{\EEF}{\not\!\exists}
+\newcommand{\ID}[2][]{\ensuremath{\widehat{\mathrm{ID}}_{#2}^{#1}}}
+\newcommand{\IID}[1]{\ensuremath{\widehat{\mathrm{ID}}_{#1}^{\mathrm{i}}{}}}
+\newcommand{\HA}{\ensuremath{\mathrm{HA}}}
+\newcommand{\PRA}{\ensuremath{\mathrm{PRA}}}
+\newcommand{\KF}{\ensuremath{\mathrm{KF}}}
+\newcommand{\UTB}{\ensuremath{\mathrm{UTB}}}
+\newcommand{\IUTB}{\ensuremath{\mathrm{UTB}^{\mathrm{i}}}}
+\newcommand{\Ax}{\ensuremath{\mathrm{Ax}}}
+\DeclareMathOperator{\rea}{\underbar{r}}
+\DeclareMathOperator{\pea}{\underbar{p}}
+
+%\renewcommand{\baselinestretch}{1.5}
+%
+%\setlength{\parindent}{0 pt}
+
+\title{Fix-point theories in first order logic}
+\author{Mattias Granberg Olsson}
+\date{2019-02-21\footnote{Talk at the Initial Types Club at Chalmers, Göteborg.}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  In this talk we will consider two theories of (non-iterated) fix-points over a base theory, in classical and intuitionistic first order logic respectively. Following the basic definitions I will introduce the problem of (my) interest, namely that of conservativity over the base theory. It is known that the intuitionistic variant (and stronger theories) is conservative over HA, while the classical one is not conservative over PA. After a brief discussion of the history of the positive result, I will present work in progress on a new idea for a proof of this fact, or fragments of it. As such, all purported proofs are sketches and many details remain to be checked.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+We formulate our theories in the language $\L$ of \emph{primitive recursive arithmetic} ($\PRA$) wherein every primitive recursive function symbol is included. The basic theory $\HA$ has as axioms $\S(0) = 0 \limp \falsum$, defining equations for all primitive recursive function symbols and induction for all formulae of the language. $\PA$ is $\HA + \mathrm{LEM}$.
+
+Let $P$ be a new relation symbol (of unspecified arity for now). $\L(P)$ is the language $\L$ expanded with this symbol. We define the set $\POS(P) \subseteq \L(P)$ of formulae with only strictly positive occurrences of $P$ inductively as follows:
+\begin{enumerate}
+\item Atomic formulae of $\L(P)$ are in $\POS(P)$.
+\item If $\varphi, \psi \in \POS(P)$ then $\varphi \landor \psi \in \POS(P)$.
+\item If $\varphi \in \L$ and $\psi \in \POS(P)$ then $\varphi \limp \psi \in \POS(P)$.\label{pos:imp}
+\item If $\varphi \in \POS(P)$ then $\forallexists x \varphi \in POS(P)$.
+\end{enumerate}
+Thus $\varphi \in \POS(P)$ iff $P$ does not occur in an antecedent of an implication in $\varphi$. For the ensuing discussion we will also need the formula classes $\POS^0(P)$ and $\POS^+(P)$, which are defined by replacing \ref{pos:imp} with
+\begin{enumerate}
+\item[3${}^0$.] If $\varphi \in \L$ is atomic and $\psi \in \POS^0(P)$ then $\varphi \limp \psi \in \POS^0(P)$.
+\end{enumerate}
+and omitting it entirely, respectively. Clearly $\POS^+(P) \subset \POS^0(P) \subset \POS(P)$.
+
+Now suppose $P$ is a unary predicate symbol. For every $\varphi(v_0) \in \POS(P)$ with exactly the variable $v_0$ free, let $\I_{\varphi}$ be a new unary predicate symbol and $\Ax_{\varphi}$ be the sentence
+\begin{align}
+  \forall v \I_{\varphi}(v) \liff \varphi(\I_{\varphi};v) \label{eq:Iax}\tag{$\dagger$}
+\end{align}
+where the latter means $\varphi(v)$ with $P$ replaced by $\I_{\varphi}$. This is the \emph{fix-point axiom} for $\varphi$.
+
+The theories we consider are $\ID1$ which is $\PA$ extended with the above fix-point axioms for all $\varphi(v_0) \in \POS(P)$ and induction for the entire language, and $\IID1$ which is $\HA$ with the corresponding extension.
+
+\section{The Problem of Conservativity}
+\label{sec:problem}
+
+An important (for my field) subtheory of $\ID1$ is $\KF$, the \emph{Kripke-Feferman theory of truth}, which is $\PA$ expanded with the new unary predicate $\T$, including induction for all of this language, extended by the following axioms\footnote{In my talk I actually presented only half of these axioms. This is the correct axiomatisation of $\KF$. This doesn't affect the other properties I claimed $\KF$ to have, e.g.~the ability to prove the consistency of $\PA$.}
+\begin{align}
+  &\forall s,t (\T(s \GN{=} t) \liff \val(s) = \val(t))\\
+  &\forall s,t (\T(\GN{\neg} (s \GN{=} t)) \liff \val(s) \not= \val(t))\\
+  &\forall f (\T(\GN{\neg \neg} f) \liff \T(f))\\
+  &\forall f,g (\T(f \GN{\land} g) \liff \T(f) \land \T(g))\\
+  &\forall f,g (\T(\GN{\neg} (f \GN{\land} g)= \liff \T(\GN{\neg} f) \lor \T(\GN{\neg} g))\\
+  &\forall f,g (\T(f \GN{\lor} g) \liff \T(f) \lor \T(g))\\
+  &\forall f,g (\T(\GN{\neg} (f \GN{\lor} g)) \liff \T(\GN{\neg} f) \land \T(\GN{\neg} g))\\
+  &\forall x,f (\T(\GN{\forall} x f) \liff \forall v \T(f[x/\num{v}]))\\
+  &\forall x,f (\T(\GN{\neg \forall} x f) \liff \exists v \T(\GN{\neg} f[x/\num{v}]))\\
+  &\forall x,f (\T(\GN{\exists} x f) \liff \exists v \T(f[x/\num{v}]))\\
+  &\forall x,f (\T(\GN{\neg \exists} x f) \liff \forall v \T(\GN{\neg} f[x/\num{v}]))\\
+  &\forall f (\T(\GN{\T}(f)) \liff \T(\val(f)))\\
+  &\forall f (\T(\GN{\neg \T}(f)) \liff \T(\GN{\neg} \val(f)) \lor \neg \Sent_{\T}(\val(f)))
+\end{align}
+(NB: slightly nonstandard notation). The symbols in raised corners are the (codes of the) formal symbols inside, which $\PA$ can ``reason about''. Likewise, $\val$ is the formal valuation function on formal terms, $\num{}$ is the formal numeral function, $[x/y]$ denotes formal substitution of $y$ for $x$ and $\Sent_{\T}$ is the formal $\L(\T)$-sentence predicate. Note that the right hand sides of the axioms are strictly positive in $\T$ as defined above. Thus these axioms can be combined into a single sentence which is an instance of \eqref{eq:Iax} (with $\T$ for $\I$).
+
+For a truth theory like $\KF$, the question of conservativity is that of how much ``strength'' is added by the truth predicate $\T$ (it has for instance at times been argued that the ``correct'' truth predicate should be described by a conservative theory). It is known that $\KF$ is not conservative over $\PA$, since it proves the consistency of $\PA$ (\cite[pp.~106, 159 \& 217]{Halbach:2011}). Hence the larger theory $\ID1$ does and is as well.
+
+\subsection{A partial conservativity result}
+\label{sec:partial}
+
+The following is a preliminary conservativity result for a fragment of $\ID1$.
+
+\begin{Prp}\label{prp:clc}
+  Let $\ID[\Pi_1]1$ be  $\PA + \{\Ax_{\varphi} \sep \varphi(v_0) \in \POS(P) \cap \Pi_1\}$. Then $\ID[\Pi_1]1$ is conservative over (in fact relatively interpretable in) $\PA$.
+  \begin{proof}[Proofsketch]
+    We show for each $\varphi(v_0) \in \POS(P) \cap \Pi_1$ there is a $\psi(v_0) \in \L_{\PA}$ such that
+    \begin{align*}
+      \PA \vdash \forall x \psi(x) \liff \varphi(\psi;x)\text{.}
+    \end{align*}
+    Let $\Sat_{\Pi_1}$ be a $\Pi_1$-satisfaction predicate for $\Pi_1$-formulae, i.e.~a $\Pi_1$-formula s.th.
+    \begin{align*}
+      \PA \vdash \Sat_{\Pi_1}(\langle \bar{x} \rangle, \GN{\vartheta}) \liff \vartheta(\bar{x})
+    \end{align*}
+    for all $\Pi_1$-formulae $\vartheta$. Given $\varphi$ consider $\tilde{\varphi} = \varphi(\Sat_{\Pi_1}^{\prime};v_0)$ where $\Sat_{\Pi_1}^{\prime}(x)$ is $\Sat_{\Pi_1}(\langle x \rangle,v_1)$ ($v_1$ is treated as a constant in the substitution, so $\tilde{\varphi}$ has two free variables, $v_1$ from $\Sat_{\Pi_1}^{\prime}$ and $v_0$ from $\varphi$). By the diagonal lemma
+    \begin{align*}
+      \PA \vdash \psi(x) \liff \tilde{\varphi}(x,\GN{\psi})
+    \end{align*}
+    for some $\psi(v_0) \in \L_{\PA}$. Since $\tilde{\varphi} \in \Pi_1(\PA)$ ($P$ occurs only positively), $\psi \in \Pi_1(\PA)$ and
+    \begin{align*}
+      \PA \vdash \psi(x) \liff \tilde{\varphi}(x,\GN{\psi}) \liff \varphi(\Sat_{\Pi_1}^{\prime}[v_1/\GN{\psi}];x) \liff \varphi(\psi;x)\text{.}
+    \end{align*}
+  \end{proof}
+\end{Prp}
+
+In particular, $\KF \restriction \Pi_1$ should be conservative over $\PA$.
+
+\section{The Intuitionistic Case}
+\label{sec:int}
+
+The intuitionistic theory $\IID1$, on the other hand, is conservative over $\HA$.
+
+\subsection{Some History}
+\label{sec:hist}
+
+To the best of my knowledge, the first result along these lines was by Buchholz (\cite{Buchholz:1997}), who proved that the fragment of $\IID1$ axiomatised by \eqref{eq:Iax} only for $\varphi \in \POS^+(P)$ is conservative over $\HA$ for \emph{essentially $\exists$-free} formulae; these contain no disjunctions and $\exists$ only in front of atomic formulae (i.e.~term equations).\footnote{(Proper) $\exists$-free formulae contains neither $\lor$ nor $\exists$.} This was subsequently improved by Arai (\cite{Arai:1998}, \cite{Arai:2011}) and Rüede and Strahm (\cite{Ruede_Strahm:2002}) (approximately) as follows:
+
+\begin{description}
+\item[1997] Buchholz: Conservativity for ess.~$\exists$-free formulae with fix-points for $\POS^+(P)$.
+\item[1998] Arai: Conservativity for all formulae with (finitely iterated) fix-points for $\POS^+(P)$.
+\item[2002] Rüede and Strahm: Conservativity for $\exists$-free and $\Pi_2$ formulae with (finitely iterated) fix-points for $\POS(P)$.
+\item[2011] Arai: Conservativity for all formulae with (finitely iterated) fix-points for $\POS(P)$.
+\end{description}
+
+\subsection{Adapting the idea in \ref{sec:partial} to the intuitionistic case}
+\label{sec:main}
+
+We will now sketch an idea for a proof of the following extension of Buchholz' result. Let $\IID1^0$ be the fragment of $\IID1$ with fix-point axioms only for formulae in $\POS^0(P)$.
+
+\begin{Thm}\label{thm:main}
+  $\IID1^0$ is conservative over $\HA$ with respect to essentially $\exists$-free formulae.
+\end{Thm}
+
+We use a realizability interpretation to ``reduce'' the number of existential quantifiers in the axioms. We use the ``standard'' Kleene realizability by numbers in $\HA$ (see e.g.~\cite{Troelstra_vanDalen:1988}):
+\begin{align*}
+  x \rea (t = s) &\text{ is } t = s\\
+  x \rea (\varphi \land \psi) &\text{ is } \rho_1(x) \rea \varphi \land \rho_2(x) \rea \psi\\
+  x \rea (\varphi \lor \psi) &\text{ is } (\rho_1(x) = 0 \limp \rho_2(x) \rea \varphi) \land (\rho_1(x) \not= 0 \limp \rho_2(x) \rea \psi)\\
+  x \rea (\varphi \limp \psi) &\text{ is } \forall y \rea \varphi (\exists u T(x,y,u) \land \forall v (T(x,y,v) \limp U(v) \rea \psi)) &\text{[$u,v$ fresh]}\\
+  x \rea (\forall y \varphi) &\text{ is } \forall y (\exists u T(x,y,u) \land \forall v (T(x,y,v) \limp U(v) \rea \varphi)) &\text{[$u,v$ fresh]}\\
+  x \rea (\exists y \varphi) &\text{ is } \rho_2(x) \rea \varphi[y/\rho_1(x)]
+\end{align*}
+
+Here $T$ and $U$ are Kleene's predicate and result-extracting function and $\rho_1,\rho_2$ are the first and second component functions. Note that the only $\exists$ left are in front of atoms.
+
+Let $R$ be a new binary predicate, the intended meaning of which is realizability of $P$; that is we stipulate that
+\begin{align*}
+  x \rea P(y) &\text{ is } R(x,y)
+\end{align*}
+in $\HA$ expanded to $\L(R)$. By straightforward induction we get
+
+\begin{Lma}
+  If $\varphi(P;\bar{y}) \in \POS^0(P)$, then $x \rea \varphi(P;\bar{y}) \in \POS^0(R)$ and is essentially $\exists$-free.
+\end{Lma}
+
+\begin{Def}[Slightly nonstandard notation]
+  Let $\Sigma_1$ be the set of all formulae of the form $\exists y \psi$ for $\psi$ quantifier free, and let $\Pi_2$ be the set of all formulae of the form $\forall x \exists y \psi$ with $\psi$ quantifier free. Let $\Sigma_1(\HA)$ be the least set containing $\Sigma_1$ which is closed under conjunction, existential quantification and implications by atomic antecedents. Let $\Pi_2(\HA)$ be the least set containing $\Pi_2$ and closed under conjunction, universal quantification and implications with $\Sigma_1(\HA)$-antecedents.
+\end{Def}
+
+\begin{Lma}
+  There is a primitive recursive function (symbol) which (provably in $\HA$) converts any $\Pi_2(\HA)$-formula to an equivalent (over $\HA$) formula in $\Pi_2$.
+  \begin{proof}[Proofsketch]
+    We show existence via straightforward induction, the only notable case being $\limp$. The proof makes it probable that the transformation is primitive recursive.
+  \end{proof}
+\end{Lma}
+
+\begin{Lma}
+  If $\varphi \in \POS^0(P)$ is essentially $\exists$-free and $\vartheta \in \Pi_2$ has two free variables, then $\varphi(\vartheta;\bar{z}) \in \Pi_2(\HA)$.
+  \begin{proof}[Proofsketch]
+    Induction.
+  \end{proof}
+\end{Lma}
+
+The idea now is to use a (rather specific) $\Pi_2$-formulation $\Sat$ of the classical satisfaction predicate for $\Pi_2$-formulae, and show that it is a satisfaction predicate for $\Pi_2$-formulae in $\HA$. Then we follow the idea of the classical case and define the interpretation $\iota(x,y) \in \L$ of $x \rea \I_{\varphi}(y)$ via the Diagonal lemma:
+\begin{align*}
+  \HA \vdash \iota(x,y) \liff \tilde{\varphi}(\Sat(\langle \cdot, \cdot \rangle,\GN{\iota});x,y)
+\end{align*}
+where $\tilde{\varphi}(R;x,y)$ is $x \rea \varphi(y)$.
+
+This is part of showing that
+\begin{align*}
+  \HA \vdash \exists x \rea \Ax
+\end{align*}
+for every axiom $\Ax$ of $\IID1^0$. The rest is showing that realizability is closed under (enough) intuitionistic logic. Finally
+\begin{align*}
+  \HA \vdash \exists x \rea \varphi \limp \varphi
+\end{align*}
+for essentially $\exists$-free $\varphi$ (see \cite{Troelstra_vanDalen:1988}), yielding Theorem \ref{thm:main}.
+
+\bibliographystyle{plain}
+\bibliography{Bibliography}
+
+\end{document}
