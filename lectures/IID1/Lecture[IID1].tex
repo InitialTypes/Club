@@ -114,7 +114,7 @@ and omitting it entirely, respectively. Clearly $\POS^+(P) \subset \POS^0(P) \su
 
 Now suppose $P$ is a unary predicate symbol. For every $\varphi(v_0) \in \POS(P)$ with exactly the variable $v_0$ free, let $\I_{\varphi}$ be a new unary predicate symbol and $\Ax_{\varphi}$ be the sentence
 \begin{align}
-  \forall v \I_{\varphi}(v) \liff \varphi(\I_{\varphi};v) \label{eq:Iax}\tag{$\dagger$}
+  \forall v (\I_{\varphi}(v) \liff \varphi(\I_{\varphi};v)) \label{eq:Iax}\tag{$\dagger$}
 \end{align}
 where the latter means $\varphi(v)$ with $P$ replaced by $\I_{\varphi}$. This is the \emph{fix-point axiom} for $\varphi$.
 
@@ -153,7 +153,7 @@ The following is a preliminary conservativity result for a fragment of $\ID1$.
   \begin{proof}[Proofsketch]
     We show for each $\varphi(v_0) \in \POS(P) \cap \Pi_1$ there is a $\psi(v_0) \in \L_{\PA}$ such that
     \begin{align*}
-      \PA \vdash \forall x \psi(x) \liff \varphi(\psi;x)\text{.}
+      \PA \vdash \forall x (\psi(x) \liff \varphi(\psi;x))\text{.}
     \end{align*}
     Let $\Sat_{\Pi_1}$ be a $\Pi_1$-satisfaction predicate for $\Pi_1$-formulae, i.e.~a $\Pi_1$-formula s.th.
     \begin{align*}
