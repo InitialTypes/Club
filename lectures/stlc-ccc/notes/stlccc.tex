@@ -1,6 +1,7 @@
-\documentclass[a4paper]{scrartcl}
+\documentclass[a4paper,fleqn]{scrartcl}
 
 \usepackage{amsmath}
+\usepackage{amsfonts}
 \usepackage[all]{xy}
 
 \title{From the simply-typed lambda-calculus to
@@ -13,10 +14,32 @@
 \newcommand{\Ob}{\mathsf{Ob}}
 \newcommand{\Hom}{\mathsf{Hom}}
 \newcommand{\tid}{\mathsf{id}}
+\newcommand{\comp}{\circ}
 \newcommand{\To}{\Rightarrow}
 \newcommand{\too}{\longrightarrow}
 \newcommand{\tcurry}{\mathsf{curry}}
 \newcommand{\tapply}{\mathsf{apply}}
+\newcommand{\teval}{\mathsf{eval}}
+
+\newcommand{\der}{\,\vdash}
+\newcommand{\subst}[3]{#3[#2{\leftarrow}#1]}
+\newcommand{\substp}[3]{(#3)[#2{\leftarrow}#1]}
+\newcommand{\ru}[2]{\dfrac{#1}{#2}}
+\newcommand{\nru}[3]{#1\ \ru{#2}{#3}}
+\newcommand{\nrux}[4]{\nru{#1}{#2}{#3}\ #4}
+\newcommand{\rux}[3]{\ru{#1}{#2}\ #3}
+
+\newcommand{\Var}{\mathsf{Var}}
+\newcommand{\Ty}{\mathsf{Ty}}
+\newcommand{\Tm}{\mathsf{Tm}}
+\newcommand{\Exp}{\mathsf{Exp}}
+\newcommand{\Cxt}{\mathsf{Cxt}}
+\newcommand{\Subst}{\mathsf{Subst}}
+
+\newcommand{\GG}{\ensuremath{\Gamma}}
+\newcommand{\GD}{\ensuremath{\Delta}}
+\newcommand{\Ge}{\ensuremath{\varepsilon}}
+\newcommand{\Gs}{\ensuremath{\sigma}}
 
 
 \begin{document}
@@ -33,6 +56,253 @@ Outline of the transformation.
 \item Conflate contexts and types, substitutions and terms: we arrive
   at an internal language for Cartesian closed categories.
 \end{enumerate}
+
+\section{From STLC to CCCs}
+
+\subsection{STLC with named variables}
+
+Syntax.
+\[
+\begin{array}{lllrl@{\qquad}l}
+\Var & \ni & x & & & \mbox{variable, e.g. string} \\
+\Tm & \ni & t,u & ::= & x \mid \lambda x t \mid t \, u & \mbox{term}
+  \\
+\Ty  & \ni & A,B,C & ::= & o \mid A \To B & \mbox{simple type} \\
+\Cxt & \ni & \Gamma, \Delta & ::= & \varepsilon \mid \Gamma.x{:}A
+  & \mbox{typing context}\\
+\end{array}
+\]
+Judgements.
+\[
+\begin{array}{l@{\qquad}l}
+  \Gamma \der t : A & \mbox{in context $\Gamma$, term $t$ has type $A$ } \\
+  \Gamma \der t = t' : A & \mbox{in context $\Gamma$, term $t$ is equal to $t'$ of type $A$ } \\
+\end{array}
+\]
+Equality rules.
+\[
+  \nru{\beta
+    }{\Gamma.x{:}A \der t : B \qquad \Gamma \der u : A
+    }{\Gamma \der (\lambda x t)\,u = \subst u x t : B
+    }
+\qquad
+  \nrux{\eta
+   }{\Gamma \der t : A \To B
+   }{\Gamma \der t = \lambda x.\,t\,x
+   }{x\#t}
+\]
+Substitution $\subst u x t$ is defined by recursion on $t$.
+We write $z\#M$ when $z$ does not clash with the free variables of
+terms contained in $M$.
+\[
+\begin{array}{rll@{\qquad}l}
+  \subst u x x & = & u \\
+  \subst u x y & = & y & \mbox{if } x \not= y \\
+  \subst u x {(t_1\,t_2)} & = & (\subst u x {t_1})\, (\subst u x {t_2}) \\
+  \subst u x {(\lambda x t)} & = & \lambda x t \\
+  \subst u x {(\lambda y t)} & = & \lambda y. {\subst u x t}
+    & \mbox{if } y\#u \\
+  \subst u x {(\lambda y t)} & = & \lambda z. {\subst u x {\subst z y t}}
+    & \mbox{for some } z\#(u,y) \\
+\end{array}
+\]
+The complication in the last case is necessary to avoid capture of
+free variables of $u$, e.g., consider $\substp y x {\lambda y x}$.
+The result should be $\lambda z y$ for some $z \not= y$, not
+$\lambda y y$.
+Note that because of the last case, substitution is not formally
+structurally recursive.  However, it could be defined by recursion on
+the height or size of term $t$, since this measure does not change by
+a renaming $\subst z y t$.
+
+\subsection{Parallel substitution}
+
+Structural recursiveness of substitution can be restored if we substitute several variables at once, or even \emph{all} free variables.
+
+\noindent
+Syntax.
+\[
+\begin{array}{lllrl@{\qquad}l}
+\Subst & \ni & \sigma & ::= & \varepsilon \mid \sigma,x{\mapsto}u
+  & \mbox{substitution} \\
+\end{array}
+\]
+Application of a substitution $t\,\sigma$ is defined by recursion on $t$.
+\[
+\begin{array}{rll@{\qquad}l}
+  x\,\sigma & = & \sigma(x) \\
+  (t_1\,t_2)\,\sigma & = & (t_1\,\sigma)\,(t_2\,\sigma) \\
+  (\lambda y t)\,\sigma & = & \lambda z.\, t\,(\sigma, y{\mapsto}z)
+    & \mbox{for some } z \# \sigma \\
+\end{array}
+\]
+Substitution typing $\Gamma \der \sigma : \Delta$.
+\[
+  \ru{}{\Gamma \vdash \Ge : \Ge}
+\qquad
+  \ru{\Gamma \vdash \Gs : \GD \qquad \Gamma \vdash u : A
+     }{\Gamma \vdash (\Gs,x{\mapsto}u) : (\GD.x{:}A)
+     }
+\]
+Exercise: prove the substitution lemma:
+If $\Delta \der t : A$ and $\Gamma \der \Gs : \Delta$
+then $\Gamma \der t\,\Gs : A$.
+
+\subsection{The category of substitutions}
+
+Identity substitution $\tid_\Gamma$ is defined by recursion on $\Gamma$ and substitution composition $\sigma\comp\sigma'$ by recursion on $\sigma$, applying $\sigma'$ to every term in $\sigma$.
+\[
+  \ru{}{\Gamma \der \tid_\Gamma : \Gamma}
+  \qquad
+  \ru{\Gamma_2 \der \sigma : \Gamma_3 \qquad
+      \Gamma_1 \der \sigma' : \Gamma_2
+    }{\Gamma_1 \der \sigma\comp\sigma' : \Gamma_3}
+\]
+Exercise: prove the category laws (identity and associativity)!
+
+The $\beta$-law is now formulated as:
+\[
+  \nru{\beta
+    }{\Gamma.x{:}A \der t : B \qquad \Gamma \der u : A
+    }{\Gamma \der (\lambda x t)\,u = t\,(\tid_\Gamma,x{\mapsto}u) : B
+    }
+\]
+
+\subsection{Explicit substitutions}
+
+We can ``freeze'' substitution by making it part of the term grammar,
+and animate it via equality rules.
+\[
+\begin{array}{lllrl@{\qquad}l}
+\Tm & \ni & t,u & ::= & \dots \mid t \comp \Gs
+  & \mbox{explicit substitution} \\
+\end{array}
+\]
+All the computation rules for substitutions become equality rules.
+\[
+\rux{\Delta.x{:}A \der t : B \qquad \Gamma \der \Gs : \Delta
+   }{\Gamma \der (\lambda x t) \comp \Gs
+              = \lambda y.\, t \comp (\Gs,x{\mapsto}y) : B
+   }{y \# \Gamma}
+\]
+Exercise: Write down the complete set of equality rules!
+
+\subsection{Nameless terms}
+
+Handling of names is a constant hassle.  Semantically, a variable is
+not more than a pointer to a binding site, so let us implement this,
+following De Bruijn 1972!
+
+We drop names from the syntax everywhere, and replace variables by
+natural numbers denoting how many binders to skip when traversing
+towards the root to reach the binding site.  E.g. the named term
+$\lambda x. x\,(\lambda y.\, x\, (\lambda x. x\,y))$ becomes
+$\lambda.\,0\,(\lambda.\, 1\,(\lambda.\, 0\,1))$.
+
+%\noindent
+Syntax.
+\[
+\begin{array}{lllrl@{\qquad}l}
+\Var & \ni & x & ::= & 0 \mid 1 + x & \mbox{de Bruijn index} \\
+\Tm & \ni & t,u & ::= & x \mid \lambda t \mid t \, u \mid t \comp \Gs & \mbox{term}
+  \\
+\Cxt & \ni & \Gamma,\Delta & ::= & \varepsilon \mid \Gamma.A
+  & \mbox{typing context}\\
+\Subst & \ni & \sigma & ::= & \varepsilon \mid \sigma,u
+  & \mbox{substitution} \\
+\end{array}
+\]
+The new judgement $\Gamma \ni x : A$ asserts that index $x$ points to an occurrence of $A$ in the list $\Gamma$:
+\[
+  \ru{}{\Gamma.A \ni 0 : A}
+\qquad
+  \ru{\Gamma \ni x : A}{\Gamma.B \ni 1 + x : A}
+\]
+Typing $\Gamma \der t : A$ of terms becomes:
+\[
+  \ru{\Gamma \ni x : A}{\Gamma \der x : A}
+\qquad
+  \ru{\Gamma.A \der t : B
+    }{\Gamma \der \lambda t : A \To B}
+% \qquad
+%   \ru{\Gamma \der t : A \To B \qquad
+%       \Gamma \der u : A
+%     }{\Gamma \der t\,u : B}
+\]
+Exercise: what becomes of the rules for application and explicit substitution?
+
+Substitution typing $\Gamma \der \sigma : \Delta$ becomes:
+\[
+  \ru{}{\Gamma \vdash \Ge : \Ge}
+\qquad
+  \ru{\Gamma \vdash \Gs : \GD \qquad \Gamma \vdash u : A
+     }{\Gamma \vdash (\Gs,u) : (\GD.A)
+     }
+\]
+Exercise: write out the equality rules!
+
+\subsection{Explicit weakening}
+
+Typings stay valid under context extensions: In the named case, $\Gamma \der t : A$ implies $\Gamma.x{:}B \der t : A$ in case $x \# \Gamma$.  In the nameless case, this can be realized by a substitution (exercise!), but may also become a constructor for terms.  As a consequence, we only need variable $0$, and can drop the syntactic class $\Var$ entriely!
+
+Syntax.
+\[
+\begin{array}{lllrl@{\qquad}l}
+\Tm & \ni & t,u & ::= & 0 \mid 1{+}\;t \mid \dots & \mbox{term} \\
+\end{array}
+\]
+Typing.
+\[
+  \ru{}{\Gamma.A \der 0 : A}
+\qquad
+  \ru{\Gamma \der t : A}{\Gamma.B \der {1+}\; t : A}
+\]
+Exercise: equality rules!
+
+\subsection{CCCs: Contexts as products, substitutions as tuples}
+
+If we view contexts $\Ge.A_1.\cdots.A_n$ simply as products
+$((1 \times A_1) \times \cdots) \times A_n$ with the unit type $1$
+replacing the empty context, substitutions $\Gs$ become simply nested
+tuples!  The typing judgements become morphism typing:
+\[
+\begin{array}{lcl}
+  \Gamma \der t : A & \leadsto & t : \Gamma \too A \\
+  \Gamma \der \Gs : \Delta & \leadsto & \Gs : \Gamma \too \Delta \\
+\end{array}
+\]
+Substitution typing:
+\begin{gather*}
+  \ru{}{! : A \to 1}
+\qquad
+  \ru{t : A \to B \qquad u : A \to C
+    }{(t,u) : A \to B \times C}
+\\[2ex]
+  \ru{}{\tid_A : A \too A}
+\qquad
+  \ru{t : B \too C \qquad u : A \too B}{t \comp u : A \too C}
+\end{gather*}
+Variable $0$ becomes the second projection $\pi_2$ and weakening $1{+}\;t$ a composition $t \comp \pi_1$ with the first projection.
+\[
+  \ru{}{\pi_2 : A \times B \too B}
+\qquad
+  \ru{}{\pi_1 : A \times B \too A}
+\]
+Abstraction $\lambda t$ is called \emph{currying} and application $t\,u$ is decomposed into $\teval \comp (t,u)$.
+\[
+  \ru{t : A \times B \too C}{\lambda t : A \too (B \To C)}
+\qquad
+  \ru{}{\teval : (A \To B) \times A \too B}
+\]
+Exercise: write out the equational theory of CCCs.
+
+Raw syntax of the initial CCC:
+\[
+\begin{array}{lllrl@{\qquad}l}
+\Ob & \ni & A,B,C & ::= & 1 \mid A \times B \mid A \To B \\
+\Tm & \ni & t,u   & ::= & \tid \mid t \comp u \mid {!} \mid (t,u) \mid \pi_1 \mid \pi_2 \mid \lambda t \mid \teval \\
+\end{array}
+\]
 
 \clearpage
 
@@ -91,10 +361,10 @@ Outline of the transformation.
 
 \subsection{Cartesian closed categories}
 
-Recall $\tapply : (A \To B) \times A \too B$ and
+Recall $\teval : (A \To B) \times A \too B$ and
 $\tcurry\, f : C \too (A \To B)$ for $f : C \times A \too B$.
 \begin{enumerate}
-\item Show $\tcurry\,\tapply = \tid$.
+\item Show $\tcurry\,\teval = \tid$.
 \item Show $A \cong (1 \To A)$.
 \end{enumerate}
 
