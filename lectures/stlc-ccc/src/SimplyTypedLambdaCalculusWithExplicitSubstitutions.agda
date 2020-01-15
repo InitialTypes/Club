@@ -249,7 +249,7 @@ mutual
 -- language of CCCs.
 
 open import CCCInternalLanguage
-import Relation.Binary.EqReasoning as EqR
+import Relation.Binary.Reasoning.Setoid as EqR
 
 ⟦_⟧ : Cxt → Ty
 ⟦ ε ⟧     = 𝟙

@@ -6,7 +6,7 @@ module CCC where
 
 open import Agda.Primitive  -- Universe levels
 open import Relation.Binary using (Setoid; IsEquivalence); open Setoid; open IsEquivalence
-import Relation.Binary.EqReasoning as EqR
+import Relation.Binary.Reasoning.Setoid as EqR
 
 
 ---------------------------------------------------------------------------

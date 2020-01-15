@@ -1,7 +1,7 @@
 -- Exercise:  A¹ ≅ A
 
 open import Relation.Binary using (Setoid; IsEquivalence); open Setoid; open IsEquivalence
-import Relation.Binary.EqReasoning as EqR
+import Relation.Binary.Reasoning.Setoid as EqR
 
 open import CCC as Foo  -- Hide this module
 
