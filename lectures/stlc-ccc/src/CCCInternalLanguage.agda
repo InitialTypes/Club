@@ -5,7 +5,7 @@ module CCCInternalLanguage where
 -- Setoid equality reasoning.
 
 open import Relation.Binary using (Setoid; IsEquivalence); open Setoid; open IsEquivalence
-import Relation.Binary.SetoidReasoning as SetoidR
+import Relation.Binary.Reasoning.MultiSetoid as SetoidR
 
 -- We use types as objects.
 
