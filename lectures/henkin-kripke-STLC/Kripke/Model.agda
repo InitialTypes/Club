@@ -4,7 +4,8 @@ open import STLC
 open import Kripke.Semantics
 
 open import Level using (0ℓ)
-open import Relation.Binary.PropositionalEquality using (Extensionality; cong-app)
+open import Relation.Binary.PropositionalEquality using (cong-app)
+open import Axiom.Extensionality.Propositional using (Extensionality)
 
 module Kripke.Model (K : Kripke) (funext : Extensionality 0ℓ 0ℓ) where
 open Semantics′ K

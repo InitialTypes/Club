@@ -4,7 +4,8 @@ open import STLC
 open import Henkin.Semantics
 
 open import Level using (0ℓ)
-open import Relation.Binary.PropositionalEquality using (Extensionality; cong-app)
+open import Relation.Binary.PropositionalEquality using (cong-app)
+open import Axiom.Extensionality.Propositional using (Extensionality)
 
 module Henkin.Model (H : Henkin) (funext : Extensionality 0ℓ 0ℓ) where
 open Semantics′ H
