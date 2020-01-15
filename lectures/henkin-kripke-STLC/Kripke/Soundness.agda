@@ -17,7 +17,7 @@ is-sound′ (axiom t u i x) hyp {w} γ = begin
   ⟨ t ↓ i ⟩ γ
   ≡⟨ weak-den t i γ ⟩
   ⟨ t ⟩ (i⟨ i ⟩ γ)
-  ≡⟨ cong (λ t′ → t′ w ⊤.tt) (hyp x)  ⟩
+  ≡⟨ cong (λ t′ → t′ w tt) (hyp x)  ⟩
   ⟨ u ⟩ (i⟨ i ⟩ γ)
   ≡⟨ sym (weak-den u i γ) ⟩
   ⟨ u ↓ i ⟩ γ

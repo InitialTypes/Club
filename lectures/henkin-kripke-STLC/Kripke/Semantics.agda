@@ -50,7 +50,7 @@ module aux (K : Kripke′) where
   v⟨ suc v ⟩ = v⟨ v ⟩ ∘ proj₁
 
   _↗*_ : ∀{w w′ Γ} → [ Γ ]* w → w ◁ w′ → [ Γ ]* w′
-  _↗*_ {Γ = ε} γ p = ⊤.tt
+  _↗*_ {Γ = ε} γ p = tt
   _↗*_ {Γ = Γ , A} (γ , a) p = γ ↗* p , a ↗ p
 
 record Kripke : Set₁ where
@@ -75,10 +75,10 @@ module Semantics′ (K : Kripke) where
                  ⟨_⟩ = λ t w → ⟨ t ⟩ {w} }
 
   i⟨_⟩ : ∀{Γ Δ} (i : Γ ⊆ Δ) {w} → [ Δ ]* w → [ Γ ]* w
-  i⟨_⟩ {ε} i δ = ⊤.tt
+  i⟨_⟩ {ε} i δ = tt
   i⟨_⟩ {Γ , A} i δ = i⟨ i ∘ suc ⟩ δ , v⟨ i zero ⟩ δ
 
   σ⟨_⟩ : ∀{Γ Δ} (σ : Γ ≤ Δ) {w} → [ Δ ]* w → [ Γ ]* w
-  σ⟨_⟩ {ε} σ δ = ⊤.tt
+  σ⟨_⟩ {ε} σ δ = tt
   σ⟨_⟩ {Γ , A} σ δ = σ⟨ σ ∘ suc  ⟩ δ , ⟨ σ zero ⟩ δ 
  

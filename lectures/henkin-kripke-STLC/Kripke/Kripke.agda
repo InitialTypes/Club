@@ -1,12 +1,7 @@
+open import Library
 open import Terms
 open import STLC
 
-open import Data.Unit using (⊤)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_ ; refl; sym; cong; cong₂; cong-app; module ≡-Reasoning; Extensionality)
-open import Data.Product
-
-open import Function using (_∘_; id)
 open ≡-Reasoning
 
 module Kripke.Kripke where
@@ -45,7 +40,7 @@ proj (suc t) = proj t ∘ proj₁
 
 -- transporting environments
 _↗*_ : ∀{w w′ Γ} → [ Γ ]* w → w ◁ w′ → [ Γ ]* w′
-_↗*_ {Γ = ε} γ p = ⊤.tt
+_↗*_ {Γ = ε} γ p = tt
 _↗*_ {Γ = Γ , A} (γ , a) p = γ ↗* p , a ↗ p
 
 trans*-id : ∀{Γ w} (γ : [ Γ ]* w) → γ ↗* later-refl ≡ γ
@@ -116,7 +111,7 @@ trans-den (app t u) γ p = begin
 
 -- Weakenings, Substitutions, Substitution Lemma
 i⟨_⟩ : ∀{Γ Δ} (i : Γ ⊆ Δ) {w} → [ Δ ]* w → [ Γ ]* w
-i⟨_⟩ {ε} i δ = ⊤.tt
+i⟨_⟩ {ε} i δ = tt
 i⟨_⟩ {Γ , A} i δ = i⟨ i ∘ suc ⟩ δ , proj (i zero) δ
 
 weakv-den : ∀{Γ A Δ w}(v : Var Γ A)(i : Γ ⊆ Δ) →
@@ -209,7 +204,7 @@ weak-den (app t u) i δ = begin
   ∎
 
 σ⟨_⟩ : ∀{Γ Δ} (σ : Γ ≤ Δ) {w} → [ Δ ]* w → [ Γ ]* w
-σ⟨_⟩ {ε} σ δ = ⊤.tt
+σ⟨_⟩ {ε} σ δ = tt
 σ⟨_⟩ {Γ , A} σ δ = σ⟨ σ ∘ suc  ⟩ δ , ⟨ σ zero ⟩ δ 
   
 sub-weaken : ∀{Γ Δ w} (i : Γ ⊆ Δ) →
@@ -305,7 +300,7 @@ is-strongly-stlc-sound′ (axiom t u i x) hyp γ = begin
   ⟨ t ↓ i ⟩ γ
   ≡⟨ weak-den t i γ ⟩
   ⟨ t ⟩ (i⟨ i ⟩ γ)
-  ≡⟨ cong (λ t′ → t′ ⊤.tt) (hyp x) ⟩
+  ≡⟨ cong (λ t′ → t′ tt) (hyp x) ⟩
   ⟨ u ⟩ (i⟨ i ⟩ γ)
   ≡⟨ sym (weak-den u i γ) ⟩
   ⟨ u ↓ i ⟩ γ
