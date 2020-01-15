@@ -244,7 +244,7 @@ module Env where
 
 
   tmD : (M : Monoid) → ∀ {n} → Env (Carrier M) n → Tm n → Carrier M
-  tmD M Γ [ x ] = lookup x Γ
+  tmD M Γ [ x ] = lookup Γ x
   tmD M Γ 𝟘 = zero M
   tmD M Γ (t + u) = plus M (tmD M Γ t) (tmD M Γ u)
 
