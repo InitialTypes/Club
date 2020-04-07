@@ -1,7 +1,5 @@
 \documentclass{scrartcl}
 
-\usepackage[utf8]{inputenc}
-
 \usepackage[english]{babel}
 
 \usepackage{amsmath}
@@ -9,8 +7,11 @@
 \usepackage{amssymb}
 \usepackage{mathtools}
 \usepackage[mathscr]{eucal}
-\usepackage[linkcolor=darkred,colorlinks,pdfpagelabels,pdftex]{hyperref}
+\usepackage[linkcolor=darkred,colorlinks,pdfpagelabels]{hyperref}
 \usepackage{color}
+\usepackage{fontspec}
+\setsansfont{STIX2Math.otf} % not a sans serif font but contains most characters
+\usepackage{agda}
 
 \definecolor{darkred}{rgb}{0.5,0,0}
 
@@ -30,7 +31,6 @@
 \newcommand{\Z}{\ensuremath{\mathbb{Z}}}
 \newcommand{\Q}{\ensuremath{\mathbb{Q}}}
 \newcommand{\R}{\ensuremath{\mathbb{R}}}
-\newcommand{\C}{\ensuremath{\mathbb{C}}}
 \renewcommand{\L}{\ensuremath{\mathscr{L}}}
 \newcommand{\ZFC}{\ensuremath{\mathrm{ZFC}}}
 \newcommand{\limp}{\rightarrow}
@@ -50,6 +50,20 @@
 \newtheorem{Exc}{Exercise}
 
 \begin{document}
+
+\begin{code}[hide]
+  open import Agda.Primitive
+  open import Agda.Builtin.Equality
+  import Agda.Builtin.Sigma as Sigma
+
+  infixr 2 _×_
+
+  Σ : {ℓ ℓ' : Level} → {A : Set ℓ} → (B : A → Set ℓ') → Set (ℓ ⊔ ℓ')
+  Σ = Sigma.Σ _
+
+  _×_ : {ℓ ℓ' : Level} → (A : Set ℓ) → (B : Set ℓ') → Set (ℓ ⊔ ℓ')
+  A × B = Sigma.Σ A λ _ → B
+\end{code}
 
 These exercises are meant to accompany the talk 2018--02--08 at the Initial Types Club of Chalmers university of technology and Gothenburg university. They mostly constitute, and are meant to illustrate, basic facts of $\ZFC$ which are principally taken from the books \cite{moschovakis:2006} and \cite{jech:2002} also referred to in the notes of the talk. As such solutions may almost always be found in the notes or their references.
 
@@ -162,11 +176,22 @@ These exercises are meant to accompany the talk 2018--02--08 at the Initial Type
 \pagebreak
 \begin{Exc}[Implementation of constructive sets in Agda\footnote{Andreas, \cite{aczel:1978}}]
   A constructive notion of set can be implemented in Agda in the following way:
-  \begin{verbatim}
-    data cset : Set_1 where
-      node : (I : Set) -> (f : I -> cset) -> cset
-  \end{verbatim}
-  where the intuition is that \verb|I| is an index set and \verb|f| a function enumerating the constructive set, possibly with repetitions. Define equality, elementhood and subsethood as functions \verb|cset -> cset -> Set_1| in Agda. Hint: these will have to be defined mutually.
+  \begin{code}
+  data cset : Set₁ where
+    node : (I : Set) → (f : I → cset) → cset
+  \end{code}
+  where the intuition is that \AgdaBound{I} is an index set and \AgdaBound{f} a function enumerating the constructive set, possibly with repetitions. Define equality, elementhood and subsethood as functions
+  \begin{code}
+  _∼_ : cset → cset → Set₀
+  _∈_ : cset → cset → Set₀
+  _⊆_ : cset → cset → Set₀
+  \end{code}
+  \begin{code}[hide]
+  x ∼ y        = {!!}
+  x ∈ node I f = {!!}
+  x ⊆ y        = {!!}
+  \end{code}
+  in Agda. Hint: these will have to be defined mutually.
 \end{Exc}
 
 \bibliographystyle{plain}
