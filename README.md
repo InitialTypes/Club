@@ -4,7 +4,7 @@ Weekly informal meeting and PhD course _Types and programming languages_ at the 
 
 Academic year 2020/21:
 
-- First meeting on _Thu, 8 Oct 2020_
+- First meeting on _Thu, 5 Nov 2020_
 - Schedule: see [Wiki](https://github.com/InitialTypes/Club/wiki)
 - Mailing list: <initial-types@lists.chalmers.se> ([subscribe here](https://lists.chalmers.se/mailman/listinfo/initial-types)  to receive course announcements)
 
