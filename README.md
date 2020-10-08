@@ -2,12 +2,9 @@
 
 Weekly informal meeting and PhD course _Types and programming languages_ at the Department of Computer Science and Engineering, Chalmers and Gothenburg University
 
-- Time: Thursdays, 16.00-17.30
-- Room: EDIT Analysen
+Academic year 2020/21:
 
-Academic year 2019/20:
-
-- First meeting on _Thu, 26 Sep 2019_ (EDIT __Analysen__)
+- First meeting on _Thu, 8 Oct 2020_
 - Schedule: see [Wiki](https://github.com/InitialTypes/Club/wiki)
 - Mailing list: <initial-types@lists.chalmers.se> ([subscribe here](https://lists.chalmers.se/mailman/listinfo/initial-types)  to receive course announcements)
 
