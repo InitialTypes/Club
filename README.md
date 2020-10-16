@@ -6,11 +6,13 @@ Academic year 2020/21:
 
 - First meeting on _Thu, 5 Nov 2020_
 - Schedule: see [Wiki](https://github.com/InitialTypes/Club/wiki#initial-types-club)
-- Mailing list: <initial-types@lists.chalmers.se> ([subscribe here](https://lists.chalmers.se/mailman/listinfo/initial-types)  to receive course announcements)
+- Mailing list: <initial-types@lists.chalmers.se> ([subscribe here](https://lists.chalmers.se/mailman/listinfo/initial-types) to receive announcements)
 
 Content:
 - Types and programming languages
 - Type theory
+- Category theory
+- Proof theory
 - Foundations of mathematics
 - More...
 
