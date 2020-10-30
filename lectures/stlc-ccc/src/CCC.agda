@@ -264,7 +264,11 @@ record CCC o m e : Set (lsuc (o ⊔ m ⊔ e)) where
     apply
     ∎ where
       open EqR (Homs _ _)
-      open EqR (Homs _ _) using () renaming (begin_ to begin′_; _∎ to _∎′; _≈⟨_⟩_ to _≈⟨_⟩′_)
+      module EqR′ = EqR (Homs _ _)
+      open EqR′ using () renaming (begin_ to begin′_; _∎ to _∎′)
+      infixr 2 step-≈′
+      step-≈′ = EqR′.step-≈
+      syntax step-≈′ x y≈z x≈y = x ≈⟨ x≈y ⟩′ y≈z
 
   -- Thus, curry apply is the identity by uniqueness of currying.
 
