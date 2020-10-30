@@ -2,7 +2,10 @@
 
 \usepackage{amsmath}
 \usepackage{amsfonts}
+\usepackage[style=authoryear]{biblatex}
 \usepackage[all]{xy}
+
+\addbibresource{stlccc.bib}
 
 \title{From the simply-typed lambda-calculus to
   cartesian closed categories}
@@ -48,7 +51,7 @@
 Outline of the transformation.
 \begin{enumerate}
 \item Simply-typed lambda-calculus (named variables).
-\item Explicit substitutions and judgmental equality.
+\item Explicit substitutions and judgemental equality.
 \item Nameless (de Bruijn) presentation.
 \item Removing the judgement for well-typed variables: $0$ is the only
   variable, the others are represented using the weakening
@@ -65,7 +68,7 @@ Syntax.
 \[
 \begin{array}{lllrl@{\qquad}l}
 \Var & \ni & x & & & \mbox{variable, e.g. string} \\
-\Tm & \ni & t,u & ::= & x \mid \lambda x t \mid t \, u & \mbox{term}
+\Tm & \ni & t,u & ::= & x \mid \lambda x.\,t \mid t \, u & \mbox{term}
   \\
 \Ty  & \ni & A,B,C & ::= & o \mid A \To B & \mbox{simple type} \\
 \Cxt & \ni & \Gamma, \Delta & ::= & \varepsilon \mid \Gamma.x{:}A
@@ -83,7 +86,7 @@ Equality rules.
 \[
   \nru{\beta
     }{\Gamma.x{:}A \der t : B \qquad \Gamma \der u : A
-    }{\Gamma \der (\lambda x t)\,u = \subst u x t : B
+    }{\Gamma \der (\lambda x.\,t)\,u = \subst u x t : B
     }
 \qquad
   \nrux{\eta
@@ -99,17 +102,17 @@ terms contained in $M$.
   \subst u x x & = & u \\
   \subst u x y & = & y & \mbox{if } x \not= y \\
   \subst u x {(t_1\,t_2)} & = & (\subst u x {t_1})\, (\subst u x {t_2}) \\
-  \subst u x {(\lambda x t)} & = & \lambda x t \\
-  \subst u x {(\lambda y t)} & = & \lambda y. {\subst u x t}
+  \subst u x {(\lambda x.\,t)} & = & \lambda x.\,t \\
+  \subst u x {(\lambda y.\,t)} & = & \lambda y.\,{\subst u x t}
     & \mbox{if } y\#u \\
-  \subst u x {(\lambda y t)} & = & \lambda z. {\subst u x {\subst z y t}}
+  \subst u x {(\lambda y.\,t)} & = & \lambda z.\,{\subst u x {\subst z y t}}
     & \mbox{for some } z\#(u,y) \\
 \end{array}
 \]
 The complication in the last case is necessary to avoid capture of
-free variables of $u$, e.g., consider $\substp y x {\lambda y x}$.
-The result should be $\lambda z y$ for some $z \not= y$, not
-$\lambda y y$.
+free variables of $u$, e.g., consider $\substp y x {\lambda y.\,x}$.
+The result should be $\lambda z.\,y$ for some $z \not= y$, not
+$\lambda y.\,y$.
 Note that because of the last case, substitution is not formally
 structurally recursive.  However, it could be defined by recursion on
 the height or size of term $t$, since this measure does not change by
@@ -132,7 +135,7 @@ Application of a substitution $t\,\sigma$ is defined by recursion on $t$.
 \begin{array}{rll@{\qquad}l}
   x\,\sigma & = & \sigma(x) \\
   (t_1\,t_2)\,\sigma & = & (t_1\,\sigma)\,(t_2\,\sigma) \\
-  (\lambda y t)\,\sigma & = & \lambda z.\, t\,(\sigma, y{\mapsto}z)
+  (\lambda y.\,t)\,\sigma & = & \lambda z.\,t\,(\sigma, y{\mapsto}z)
     & \mbox{for some } z \# \sigma \\
 \end{array}
 \]
@@ -144,7 +147,7 @@ Substitution typing $\Gamma \der \sigma : \Delta$.
      }{\Gamma \vdash (\Gs,x{\mapsto}u) : (\GD.x{:}A)
      }
 \]
-Exercise: prove the substitution lemma:
+Exercise: Prove the substitution lemma:
 If $\Delta \der t : A$ and $\Gamma \der \Gs : \Delta$
 then $\Gamma \der t\,\Gs : A$.
 
@@ -158,13 +161,13 @@ Identity substitution $\tid_\Gamma$ is defined by recursion on $\Gamma$ and subs
       \Gamma_1 \der \sigma' : \Gamma_2
     }{\Gamma_1 \der \sigma\comp\sigma' : \Gamma_3}
 \]
-Exercise: prove the category laws (identity and associativity)!
+Exercise: Prove the category laws (identity and associativity)!
 
 The $\beta$-law is now formulated as:
 \[
   \nru{\beta
     }{\Gamma.x{:}A \der t : B \qquad \Gamma \der u : A
-    }{\Gamma \der (\lambda x t)\,u = t\,(\tid_\Gamma,x{\mapsto}u) : B
+    }{\Gamma \der (\lambda x.\,t)\,u = t\,(\tid_\Gamma,x{\mapsto}u) : B
     }
 \]
 
@@ -181,8 +184,8 @@ and animate it via equality rules.
 All the computation rules for substitutions become equality rules.
 \[
 \rux{\Delta.x{:}A \der t : B \qquad \Gamma \der \Gs : \Delta
-   }{\Gamma \der (\lambda x t) \comp \Gs
-              = \lambda y.\, t \comp (\Gs,x{\mapsto}y) : B
+   }{\Gamma \der (\lambda x.\,t) \comp \Gs
+              = \lambda y.\,t \comp (\Gs,x{\mapsto}y) : B
    }{y \# \Gamma}
 \]
 Exercise: Write down the complete set of equality rules!
@@ -191,13 +194,13 @@ Exercise: Write down the complete set of equality rules!
 
 Handling of names is a constant hassle.  Semantically, a variable is
 not more than a pointer to a binding site, so let us implement this,
-following De Bruijn 1972!
+following \textcite{Bruijn72}!
 
 We drop names from the syntax everywhere, and replace variables by
 natural numbers denoting how many binders to skip when traversing
 towards the root to reach the binding site.  E.g. the named term
-$\lambda x. x\,(\lambda y.\, x\, (\lambda x. x\,y))$ becomes
-$\lambda.\,0\,(\lambda.\, 1\,(\lambda.\, 0\,1))$.
+$\lambda x.\,x\,(\lambda y.\,x\,(\lambda x.\,x\,y))$ becomes
+$\lambda.\,0\,(\lambda.\,1\,(\lambda.\,0\,1))$.
 
 %\noindent
 Syntax.
@@ -229,7 +232,7 @@ Typing $\Gamma \der t : A$ of terms becomes:
 %       \Gamma \der u : A
 %     }{\Gamma \der t\,u : B}
 \]
-Exercise: what becomes of the rules for application and explicit substitution?
+Exercise: What becomes of the rules for application and explicit substitution?
 
 Substitution typing $\Gamma \der \sigma : \Delta$ becomes:
 \[
@@ -239,11 +242,11 @@ Substitution typing $\Gamma \der \sigma : \Delta$ becomes:
      }{\Gamma \vdash (\Gs,u) : (\GD.A)
      }
 \]
-Exercise: write out the equality rules!
+Exercise: Write out the equality rules!
 
 \subsection{Explicit weakening}
 
-Typings stay valid under context extensions: In the named case, $\Gamma \der t : A$ implies $\Gamma.x{:}B \der t : A$ in case $x \# \Gamma$.  In the nameless case, this can be realized by a substitution (exercise!), but may also become a constructor for terms.  As a consequence, we only need variable $0$, and can drop the syntactic class $\Var$ entriely!
+Typings stay valid under context extensions: In the named case, $\Gamma \der t : A$ implies $\Gamma.x{:}B \der t : A$ in case $x \# \Gamma$.  In the nameless case, this can be realized by a substitution (exercise!), but may also become a constructor for terms.  As a consequence, we only need variable $0$, and can drop the syntactic class $\Var$ entirely!
 
 Syntax.
 \[
@@ -257,7 +260,7 @@ Typing.
 \qquad
   \ru{\Gamma \der t : A}{\Gamma.B \der {1+}\; t : A}
 \]
-Exercise: equality rules!
+Exercise: Equality rules!
 
 \subsection{CCCs: Contexts as products, substitutions as tuples}
 
@@ -294,7 +297,7 @@ Abstraction $\lambda t$ is called \emph{currying} and application $t\,u$ is deco
 \qquad
   \ru{}{\teval : (A \To B) \times A \too B}
 \]
-Exercise: write out the equational theory of CCCs.
+Exercise: Write out the equational theory of CCCs.
 
 Raw syntax of the initial CCC:
 \[
@@ -416,13 +419,17 @@ $\tcurry\, f : C \too (A \To B)$ for $f : C \times A \too B$.
 \item Write an interpretation of types and contexts as objects in the CCC.
 \item Write an interpretation of well-typed terms and substitutions as
   morphisms in the CCC.
-\item Write an interpretation of judgmental equality as equality of
+\item Write an interpretation of judgemental equality as equality of
   morphisms in the CCC.
   \begin{itemize}
-  \item First, prove each rule of judgmental equality as a theorem
+  \item First, prove each rule of judgemental equality as a theorem
     about morphisms in a CCC.
   \item Then, map the rules to these theorems.
   \end{itemize}
 \end{enumerate}
+
+\clearpage
+
+\printbibliography
 
 \end{document}
