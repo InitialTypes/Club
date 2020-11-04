@@ -4,11 +4,32 @@
 \usepackage{amsfonts}
 \usepackage{amsthm}
 \usepackage[style=authoryear]{biblatex}
+\usepackage{xspace}
 \usepackage[all]{xy}
 
 \newtheorem{exercise}{Exercise}
 
 \addbibresource{stlccc.bib}
+
+% Add a period to the end of an abbreviation unless there's one
+% already, then \xspace.
+% Source: https://stackoverflow.com/questions/3282319/correct-way-to-define-macros-etc-ie-in-latex
+\makeatletter
+\DeclareRobustCommand\onedot{\futurelet\@let@token\@onedot}
+\def\@onedot{\ifx\@let@token.\else.\null\fi\xspace}
+
+\def\eg{e.g\onedot}
+\def\Eg{E.g\onedot}
+\def\ie{i.e\onedot}
+\def\Ie{I.e\onedot}
+\def\cf{c.f\onedot}
+\def\Cf{C.f\onedot}
+\def\etc{etc\onedot}
+\def\vs{vs\onedot}
+\def\wrt{w.r.t\onedot}
+\def\dof{d.o.f\onedot}
+\def\etal{et al\onedot}
+\makeatother
 
 \title{From the simply-typed lambda-calculus to
   cartesian closed categories}
@@ -70,7 +91,7 @@ Outline of the transformation.
 Syntax.
 \[
 \begin{array}{lllrl@{\qquad}l}
-\Var & \ni & x & & & \mbox{variable, e.g. string} \\
+\Var & \ni & x & & & \mbox{variable, \eg string} \\
 \Tm & \ni & t,u & ::= & x \mid \lambda x.\,t \mid t \, u & \mbox{term}
   \\
 \Ty  & \ni & A,B,C & ::= & o \mid A \To B & \mbox{simple type} \\
@@ -113,7 +134,7 @@ terms contained in $M$.
 \end{array}
 \]
 The complication in the last case is necessary to avoid capture of
-free variables of $u$, e.g., consider $\substp y x {\lambda y.\,x}$.
+free variables of $u$, \eg, consider $\substp y x {\lambda y.\,x}$.
 The result should be $\lambda z.\,y$ for some $z \not= y$, not
 $\lambda y.\,y$.
 Note that because of the last case, substitution is not formally
@@ -210,7 +231,7 @@ following \textcite{Bruijn72}!
 
 We drop names from the syntax everywhere, and replace variables by
 natural numbers denoting how many binders to skip when traversing
-towards the root to reach the binding site.  E.g. the named term
+towards the root to reach the binding site. \Eg the named term
 $\lambda x.\,x\,(\lambda y.\,x\,(\lambda x.\,x\,y))$ becomes
 $\lambda.\,0\,(\lambda.\,1\,(\lambda.\,0\,1))$.
 
