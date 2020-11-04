@@ -290,7 +290,7 @@ Typings stay valid under context extensions: In the named case, $\Gamma \der t :
 Syntax.
 \[
 \begin{array}{lllrl@{\qquad}l}
-\Tm & \ni & t,u & ::= & 0 \mid 1{+}\;t \mid \dots & \mbox{term} \\
+\Tm & \ni & t,u & ::= & 0 \mid {1+}\;t \mid \dots & \mbox{term} \\
 \end{array}
 \]
 Typing.
@@ -330,7 +330,7 @@ Substitution typing:
 \qquad
   \ru{t : B \too C \qquad u : A \too B}{t \comp u : A \too C}
 \end{gather*}
-Variable $0$ becomes the second projection $\pi_2$ and weakening $1{+}\;t$ a composition $t \comp \pi_1$ with the first projection.
+Variable $0$ becomes the second projection $\pi_2$ and weakening ${1+}\;t$ a composition $t \comp \pi_1$ with the first projection.
 \[
   \ru{}{\pi_2 : A \times B \too B}
 \qquad
