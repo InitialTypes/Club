@@ -338,7 +338,7 @@ Variable $0$ becomes the second projection $\pi_2$ and weakening ${1+}\;t$ a com
 \]
 Abstraction $\lambda t$ is called \emph{currying} and application $t\,u$ is decomposed into $\teval \comp (t,u)$.
 \[
-  \ru{t : A \times B \too C}{\lambda t : A \too (B \To C)}
+  \ru{t : C \times A \too B}{\tcurry\,t : C \too (A \To B)}
 \qquad
   \ru{}{\teval : (A \To B) \times A \too B}
 \]
@@ -351,7 +351,7 @@ Raw syntax of the initial CCC:
 \[
 \begin{array}{lllrl@{\qquad}l}
 \Ob & \ni & A,B,C & ::= & 1 \mid A \times B \mid A \To B \\
-\Tm & \ni & t,u   & ::= & \tid \mid t \comp u \mid {!} \mid (t,u) \mid \pi_1 \mid \pi_2 \mid \lambda t \mid \teval \\
+\Tm & \ni & t,u   & ::= & \tid \mid t \comp u \mid {!} \mid (t,u) \mid \pi_1 \mid \pi_2 \mid \tcurry\,t \mid \teval \\
 \end{array}
 \]
 
@@ -413,7 +413,7 @@ Raw syntax of the initial CCC:
 \subsection{Cartesian closed categories}
 
 Recall $\teval : (A \To B) \times A \too B$ and
-$\tcurry\, f : C \too (A \To B)$ for $f : C \times A \too B$.
+$\tcurry\, t : C \too (A \To B)$ for $t : C \times A \too B$.
 \begin{enumerate}
 \item Show $\tcurry\,\teval = \tid$.
 \item Show $A \cong (1 \To A)$.
