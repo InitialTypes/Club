@@ -2,8 +2,11 @@
 
 \usepackage{amsmath}
 \usepackage{amsfonts}
+\usepackage{amsthm}
 \usepackage[style=authoryear]{biblatex}
 \usepackage[all]{xy}
+
+\newtheorem{exercise}{Exercise}
 
 \addbibresource{stlccc.bib}
 
@@ -147,9 +150,12 @@ Substitution typing $\Gamma \der \sigma : \Delta$.
      }{\Gamma \vdash (\Gs,x{\mapsto}u) : (\GD.x{:}A)
      }
 \]
-Exercise: Prove the substitution lemma:
+\begin{exercise}
+Prove the substitution lemma:
 If $\Delta \der t : A$ and $\Gamma \der \Gs : \Delta$
 then $\Gamma \der t\,\Gs : A$.
+\end{exercise}
+
 
 \subsection{The category of substitutions}
 
@@ -161,7 +167,10 @@ Identity substitution $\tid_\Gamma$ is defined by recursion on $\Gamma$ and subs
       \Gamma_1 \der \sigma' : \Gamma_2
     }{\Gamma_1 \der \sigma\comp\sigma' : \Gamma_3}
 \]
-Exercise: Prove the category laws (identity and associativity)!
+\begin{exercise}
+Prove the category laws (identity and associativity)!
+\end{exercise}
+
 
 The $\beta$-law is now formulated as:
 \[
@@ -188,7 +197,10 @@ All the computation rules for substitutions become equality rules.
               = \lambda y.\,t \comp (\Gs,x{\mapsto}y) : B
    }{y \# \Gamma}
 \]
-Exercise: Write down the complete set of equality rules!
+\begin{exercise}
+Write down the complete set of equality rules!
+\end{exercise}
+
 
 \subsection{Nameless terms}
 
@@ -232,7 +244,10 @@ Typing $\Gamma \der t : A$ of terms becomes:
 %       \Gamma \der u : A
 %     }{\Gamma \der t\,u : B}
 \]
-Exercise: What becomes of the rules for application and explicit substitution?
+\begin{exercise}
+What becomes of the rules for application and explicit substitution?
+\end{exercise}
+
 
 Substitution typing $\Gamma \der \sigma : \Delta$ becomes:
 \[
@@ -242,11 +257,14 @@ Substitution typing $\Gamma \der \sigma : \Delta$ becomes:
      }{\Gamma \vdash (\Gs,u) : (\GD.A)
      }
 \]
-Exercise: Write out the equality rules!
+\begin{exercise}
+Write out the equality rules!
+\end{exercise}
+
 
 \subsection{Explicit weakening}
 
-Typings stay valid under context extensions: In the named case, $\Gamma \der t : A$ implies $\Gamma.x{:}B \der t : A$ in case $x \# \Gamma$.  In the nameless case, this can be realized by a substitution (exercise!), but may also become a constructor for terms.  As a consequence, we only need variable $0$, and can drop the syntactic class $\Var$ entirely!
+Typings stay valid under context extensions: In the named case, $\Gamma \der t : A$ implies $\Gamma.x{:}B \der t : A$ in case $x \# \Gamma$.  In the nameless case, this can be realized by a substitution, but may also become a constructor for terms.  As a consequence, we only need variable $0$, and can drop the syntactic class $\Var$ entirely!
 
 Syntax.
 \[
@@ -260,7 +278,13 @@ Typing.
 \qquad
   \ru{\Gamma \der t : A}{\Gamma.B \der {1+}\; t : A}
 \]
-Exercise: Equality rules!
+\begin{exercise}
+Equality rules!
+\end{exercise}
+\begin{exercise}
+Realize weakening by a substitution!
+\end{exercise}
+
 
 \subsection{CCCs: Contexts as products, substitutions as tuples}
 
@@ -297,7 +321,10 @@ Abstraction $\lambda t$ is called \emph{currying} and application $t\,u$ is deco
 \qquad
   \ru{}{\teval : (A \To B) \times A \too B}
 \]
-Exercise: Write out the equational theory of CCCs.
+\begin{exercise}
+Write out the equational theory of CCCs.
+\end{exercise}
+
 
 Raw syntax of the initial CCC:
 \[
