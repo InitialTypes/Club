@@ -34,7 +34,7 @@
 \title{From the simply-typed lambda-calculus to
   cartesian closed categories}
 \author{Andreas Abel}
-\date{December 2017}
+\date{December 2017, November 2020}
 
 \newcommand{\wttm}{\ensuremath{\mathsf{Tm}\,\Gamma\,a}}
 \newcommand{\Set}{\mathsf{Set}}
@@ -45,6 +45,7 @@
 \newcommand{\To}{\Rightarrow}
 \newcommand{\too}{\longrightarrow}
 \newcommand{\tcurry}{\mathsf{curry}}
+\newcommand{\tuncurry}{\mathsf{uncurry}}
 \newcommand{\tapply}{\mathsf{apply}}
 \newcommand{\teval}{\mathsf{eval}}
 
@@ -354,6 +355,30 @@ Raw syntax of the initial CCC:
 \Tm & \ni & t,u   & ::= & \tid \mid t \comp u \mid {!} \mid (t,u) \mid \pi_1 \mid \pi_2 \mid \tcurry\,t \mid \teval \\
 \end{array}
 \]
+
+\begin{exercise}
+Show that $\teval$ can be replaced by $\tapply$.
+\[
+\ru{t : C \too (A \To B) \qquad u : C \too A}{\tapply\,t\,u : C \too B}
+\]
+Together with $\tcurry$ and their equations this is the STLC formulation.
+\end{exercise}
+\begin{exercise}
+Show that $\teval$ can be replaced by $\tuncurry$.
+\[
+\ru{t : C \too (A \To B)}{\tuncurry\,t : C \times A \too B}
+\]
+Together with $\tcurry$ and their equations this is the homset formulation.
+\end{exercise}
+% \begin{exercise}
+% Show that $\tcurry$ can be replaced by $\eta$ and $\circ$.
+% \[
+% \ru{}{\eta : B \too A \To (B \times A)}
+% \qquad
+% \ru{t : B \too C}{{t \circ} : A \To B \too A \To C}
+% \]
+% Together with $\teval$ and their equations this is the unit-counit formulation.
+% \end{exercise}
 
 \clearpage
 
