@@ -10,3 +10,9 @@ data Ty : Set where
 data Cxt : Set where
   ε   : Cxt
   _,_ : (Γ : Cxt) (a : Ty) → Cxt
+
+infix 19 _∈_
+
+data _∈_ (a : Ty) : (Γ : Cxt) → Set where
+  𝟘   : {Γ : Cxt} → a ∈ Γ , a
+  𝟙+_ : {Γ : Cxt} {b : Ty} → a ∈ Γ → a ∈ Γ , b

@@ -88,6 +88,11 @@ mutual
 -- _∘_ {Φ = ε}     _ _ = ε
 -- _∘_ {Φ = Γ , a} r s = (wk ∘ r) ∘ s , (var₀ [ r ]) [ s ] -- = (π₁ ∘ r , π₂ ∘ r) ∘ s = ((π₁ ∘ r) ∘ s , (π₂ ∘ r) ∘ s)
 
+-- De Bruijn index
+var : {a : Ty} {Γ : Cxt} → a ∈ Γ → Tm Γ a
+var 𝟘      = var₀
+var (𝟙+ n) = var n [ wk ]
+
 -- Equational theory.
 
 mutual
