@@ -1,0 +1,835 @@
+\documentclass[xcolor={usenames,dvipsnames,svgnames}]{beamer}
+
+%%% Packages %%%
+
+% Use T1 and a modern font family for better support of accents, etc.
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+%\usepackage{lmodern}  % Latin Modern (successor of Computer Modern)
+\usepackage{palatino}  % Palatino
+
+\usefonttheme[onlymath]{serif}
+
+\mode<presentation>
+{
+  \usetheme{Singapore}
+  \usecolortheme{rose}
+  %\setbeamercovered{transparent}
+  \setbeamercovered{invisible}
+  \setbeamercolor*{alerted text}{parent=titlelike}
+  % get rid of all of the navigation stuff
+  \beamertemplatenavigationsymbolsempty{}
+
+  % slide number in the lower-right, in gray
+  \setbeamertemplate{footline}{%
+    \raisebox{5pt}{\makebox[\paperwidth]{%
+        \hfill\makebox[20pt]{\color{gray}%
+        \scriptsize\insertframenumber}}}\hspace*{5pt}}
+
+  % use standard frame number
+  %\setbeamertemplate{footline}[frame number]
+}
+
+% Use colored text to emphasize things.
+\renewcommand{\emph}[1]{\alert{#1}}
+
+% For author-year citations.
+%\usepackage{natbib}
+
+% Language support
+\usepackage[english]{babel}
+
+% Support for easily changing the enumerator in
+% enumerate-environments.
+%\usepackage{enumerate}
+
+% Support for importing images
+%\usepackage{graphicx}
+
+% Use hyperlinks
+\usepackage{hyperref}
+
+% Don't load xcolors package in beamer: use document class option
+% instead...
+%\usepackage[usenames,dvipsnames]{xcolor}
+
+% AMS Math typesetting
+\usepackage{amsmath}    % AMS math basics
+\usepackage{amsfonts}   % Math fonts
+\usepackage{amssymb}    % Math symbols
+\usepackage{mathtools}  % Extensible arrows etc.
+
+% More math symbols (e.g. double-brackets: \llbracket, \rrbracket)
+%\usepackage{stmaryrd}
+
+% A nice monospace font for listings, etc.
+\usepackage[scaled]{beramono}
+%\usepackage{inconsolata}
+
+% Conditionals
+\usepackage{xifthen}
+
+% Proof trees
+\usepackage{bcprules}
+\usepackage{bussproofs}
+
+% Make rule labels smaller (for rules typeset with bcprules)
+\newif\ifsmallrulenames
+\smallrulenamestrue
+
+% Style used in trees typeset with bussproofs (to be consistent with
+% style used in rule definitions).
+\newcommand{\rulelabel}[1]{{\small\sc (#1)}}
+
+% Multiple columns.
+\usepackage{multicol}
+
+%%% Macro definitions
+
+% Helper macro that returns #2 if #1 is empty, #3 otherwise.  The
+% macro will misbehave if #1=\\.
+\newcommand{\ifempty}[3]{\ifx\\#1\\ #2\else #3\fi}
+
+% Use blue-ish color when shading.
+\definecolor{shade}{rgb}{0.83, 0.8, 1.0}
+
+% Highlights parts of equations/typing rules only on some slides.
+\newcommand<>\hlbox[1]{%
+  \alt#2{%
+    \colorbox{shade}{\ensuremath{#1}}}{%
+    \colorbox{white}{\ensuremath{#1}}}}
+
+% A variant of hlbox that does not have extra margins.
+\newcommand<>\shlbox[1]{%
+  \alt#2{%
+    \phantom{#1}\makebox[\fboxsep]{}%
+    \mathchoice{%
+      \smash{\llap{\colorbox{shade}{$\displaystyle#1$}}}}{%
+      \smash{\llap{\colorbox{shade}{$\textstyle#1$}}}}{%
+      \smash{\llap{\colorbox{shade}{$\scriptstyle#1$}}}}{%
+      \smash{\llap{\colorbox{shade}{$\scriptscriptstyle#1$}}}}%
+    \makebox[-\fboxsep]{}}{#1}}
+
+% Colors for terms, variables, substitutions, etc.
+\colorlet{varc}{PineGreen}
+\colorlet{termc}{Blue}
+\colorlet{subc}{Maroon}
+
+% Handy for coloring terms
+\renewcommand{\v}[1]{\textcolor{varc}{#1}}
+\renewcommand{\t}[1]{\textcolor{termc}{#1}}
+\newcommand{\s}[1]{\textcolor{subc}{#1}}
+
+% Separator in syntax definitions
+\newcommand{\DefOr}{\ensuremath{\hspace{0.2em}\big|\hspace{0.2em}}}
+
+
+%%% Macros for constructors (types, terms, substitutions, judgments)
+
+% NOTE. It's a bit cumbersome to use these macros when typesetting
+% syntax and rules because all one sees in the TeX code is a salad of
+% curly branches.  However, there's a payoff at the end because we can
+% redefine the macros to change the "interpretation" of the terms and
+% judgments (as morphism typings, sequents, etc.) simply be redefining
+% the macros.  See the last few slides for examples.
+
+% Type and term constructors
+\newcommand{\base}[1][]{\mathrm{b}}
+\newcommand{\unit}{\mathbf{1}}
+\newcommand{\fun}[2]{#1 \to #2}
+\newcommand{\vz}{\v{0}}
+\newcommand{\lam}[2]{\t{\lambda \ifempty{#1}{}{\v{#1}. \,} #2}}
+\newcommand{\app}[2]{\t{{#1} \, {#2}}}
+\newcommand{\appp}[3]{\app{\app{#1}{#2}}{#3}}
+\newcommand{\apppp}[4]{\app{\appp{#1}{#2}{#3}}{#4}}
+
+% Contexts
+\newcommand{\cempty}{\cdot}
+\newcommand{\cext}{,}
+
+% Substitutions
+\newcommand{\subst}[2]{\textcolor{black}{\t{#1}[\s{#2}]}}
+\newcommand{\sing}[2]{\s{\v{#1}\coloneqq \t{#2}}}
+\newcommand{\id}[1][]{\s{\mathrm{id}}}
+\newcommand{\wk}[1][]{\s{\uparrow}}
+\newcommand{\pair}[2]{\s{\langle #1 , \t{#2} \rangle}}
+\newcommand{\sempty}{\s{\langle \rangle}}
+\newcommand{\scomp}[2]{\s{#1 \circ #2}}
+
+% Free variables
+\newcommand{\fv}{\mathsf{fv}}
+\newcommand{\dom}{\mathsf{dom}}
+
+% Parts of judgments
+\newcommand{\tin}{:}
+\newcommand{\tas}{\colon}  % for binders
+\newcommand{\ts}{\vdash}
+
+% Judgment forms
+\newcommand{\bd}[2]{\v{#1} \tas #2}
+\newcommand{\tp}[3]{#1 \ts \t{#2} \tin #3}
+\newcommand{\sub}[3]{#1 \ts \s{#2} \tin #3}
+\newcommand{\teq}[4]{#1 \ts \t{#2} = \t{#3} \tin #4}
+\newcommand{\seq}[4]{#1 \ts \s{#2} = \s{#3} \tin #4}
+
+
+%%% Beamer-related macros %%%
+
+% Commands for disabling numbering of backup slides.
+% Adapted from https://stackoverflow.com/a/2370399
+\newcounter{finalframe}
+\newenvironment{backupslides}{%
+  % Save the frame counter before starting the backup slides.
+  \setcounter{finalframe}{\value{framenumber}}
+}{%
+  % Restore the frame counter to its value before the backup slides.
+  \setcounter{framenumber}{\value{finalframe}}
+}
+
+
+%%% Document info %%%
+
+\title{The Simply Typed Lambda Calculus}
+
+\subtitle{and Variants Thereof}
+
+\author{Sandro~Stucki}
+
+\institute[GU]{%
+  University of Gothenburg~|~Chalmers, Sweden}
+
+\date{\footnotesize%
+  Virtual ITC Lecture 1 ~~--~~ 5 Nov 2020\\[4mm]%
+  \url{sandro.stucki@gu.se}\hspace{5mm}\url{@stuckintheory}\\[5mm]%
+  \includegraphics[height=16mm]{img/gu-logo}\hspace{10mm}%
+  \includegraphics[height=12mm]{img/chalmers-logo}
+}
+
+
+% To show the TOC at the beginning of each section, uncomment this:
+% \AtBeginSection[]
+% {
+%   \begin{frame}<beamer>{Outline}
+%     \tableofcontents[currentsection]
+%   \end{frame}
+% }
+
+% To show the TOC at the beginning of each subsection, uncomment this:
+% \AtBeginSubsection[]
+% {
+%   \begin{frame}<beamer>{Outline}
+%     \tableofcontents[currentsection,currentsubsection]
+%   \end{frame}
+% }
+
+
+% To uncover everything in a step-wise fashion, uncomment this:
+%\beamerdefaultoverlayspecification{<+->}
+
+
+%%% Start of the actual document %%%
+
+\begin{document}
+
+\begin{frame}%[noframenumbering]
+  \titlepage
+\end{frame}
+
+\begin{frame}{On today's menu}
+  %\tableofcontents
+  \pause
+  \begin{description}[<+->][Part III]
+  \item[Part I] \hyperref[sec:stlc]{STLC}\\[.5em]
+
+    The plain, old simply typed lambda calculus\\[.5em]
+
+  \item[Part II] \hyperref[sec:explicit]{Explicit substitutions}\\[.5em]
+
+    Adding explicit substitutions and their equational theory\\[.5em]
+
+  \item[Part III] \hyperref[sec:debruijn]{De Bruijn indices}\\[.5em]
+
+    Doing away with variables\dots\\[.5em]
+
+  \item[Part IV] \hyperref[sec:CHL]{Correspondences}\\[.5em]
+
+    Everything is connected.\\[.5em]
+  \end{description}
+\end{frame}
+
+\section{STLC}
+\label{sec:stlc}
+
+\begin{frame}{Syntax}
+
+  \begin{alignat*}{2}
+    \mathcal{V} \quad \ni &\quad&
+      \v{x}, \v{y}, \v{z}, &\dots
+      \tag{Variable}\\
+    \mathcal{T} \quad \ni &&
+      \t{s}, \t{t}, \t{u} &::= \v{x} \DefOr \lam{x}{t} \DefOr \app{s}{t}
+      \tag{Term}\\
+    \mathcal{A} \quad \ni &&
+      A, B, C &::= \base \DefOr A \to B
+      \tag{Type}\\
+    \mathcal{C} \quad \ni &&
+      \Gamma, \Delta, E &::= \cempty \DefOr \Gamma \cext \bd{x}{A}
+      \tag{Context}\\
+  \end{alignat*}
+\end{frame}
+
+
+\begin{frame}{Term typing \hfill \fbox{$\tp{\Gamma}{t}{A}$}}
+  \infax[Var]
+  {\tp{\bd{x_n}{A_n}, \dotsc, \bd{x_0}{A_0}}{\v{x_i}}{A_i}}
+
+  \infrule[Abs]
+  {\tp{\Gamma \cext \bd{x}{A}}{t}{B}}
+  {\tp{\Gamma}{\lam{x}{t}}{\fun{A}{B}}}
+
+  \infrule[App]
+  {\tp{\Gamma}{t}{\fun{A}{B}} \quad \tp{\Gamma}{u}{A}}
+  {\tp{\Gamma}{\app{t}{u}}{B}}
+\end{frame}
+
+
+\begin{frame}{Substitutions}
+  Substitutions are finite maps $\s{\sigma}\colon \mathcal{V} \to \mathcal{T}$
+  from variables to terms.
+
+  \bigskip
+
+  Application of substitutions
+  \begin{align*}
+    \v{x}&[\s{\sigma}] \coloneqq \s{\sigma}(\v{x}) \\
+    (\lam{x}{t})&[\s{\sigma}] \coloneqq
+      \lam{x}{\subst{t}{\sigma\{\sing{x}{\v{x}}\}}} \\
+    (\app{t}{u})&[\s{\sigma}] \coloneqq
+      \app{\subst{t}{\sigma}}{\subst{u}{\sigma}} \\
+  \end{align*}
+\end{frame}
+
+
+\begin{frame}{Equational theory \hfill \fbox{$\teq{\Gamma}{t}{u}{A}$}}
+  \begin{multicols}{2}
+    \infax[ERefl]
+    {\teq{\Gamma}{t}{t}{A}}
+
+    \infrule[ESym]
+    {\teq{\Gamma}{t_1}{t_2}{A}}
+    {\teq{\Gamma}{t_2}{t_1}{A}}
+
+    \infrule[E-$\beta$]
+    {\tp{\Gamma \cext \bd{x}{A}}{t}{B} \quad \tp{\Gamma}{u}{A}}
+    {\teq{\Gamma}{\app{(\lam{x}{t})}{u}}{\subst{t}{\sing{x}{u}}}{B}}
+
+    \infrule[EAbs]
+    {\teq{\Gamma \cext \bd{x}{A}}{t}{t'}{B}}
+    {\teq{\Gamma}{\lam{x}{t}}{\lam{x}{t'}}{\fun{A}{B}}}
+
+    \infrule[ETrans]
+    {\teq{\Gamma}{t_1}{t_2}{A} \quad \teq{\Gamma}{t_2}{t_3}{A}}
+    {\teq{\Gamma}{t_1}{t_3}{A}}
+
+    \infrule[E-$\eta$]
+    {\tp{\Gamma}{t}{\fun{A}{B}} \quad \v{x} \notin \fv(t)}
+    {\teq{\Gamma}{t}{\lam{x}{\app{t}{\v{x}}}}{\fun{A}{B}}}
+
+    \infrule[EApp]
+    {\teq{\Gamma}{t}{t'}{\fun{A}{B}} \quad \teq{\Gamma}{u}{u'}{A}}
+    {\teq{\Gamma}{\app{t}{u}}{\app{t'}{u'}}{B}}
+  \end{multicols}
+\end{frame}
+
+
+\section{Explicit substitutions}
+\label{sec:explicit}
+
+\begin{frame}{Explicit Substitutions}
+  Substitutions are finite maps $\s{\sigma}\colon \mathcal{V} \to \mathcal{T}$
+  from variables to terms.
+
+  \bigskip
+
+  But so far, they were meta-theoretic.
+
+  \bigskip\pause
+
+  Let's make them syntactic!
+
+  \bigskip\pause
+
+  \begin{alignat*}{2}
+    \mathcal{S} \quad \ni &\quad &
+    \s{\rho}, \s{\sigma}, \s{\tau} &::=
+    \sempty \DefOr \pair{\sigma}{t} \DefOr \wk \DefOr \id \DefOr
+      \scomp{\rho}{\sigma}
+      \tag{Substitution}\\
+  \end{alignat*}
+
+\end{frame}
+
+
+\begin{frame}{Update: term typing \hfill \fbox{$\tp{\Gamma}{t}{A}$}}
+
+  \infrule[Sub]
+  {\sub{\Gamma}{\sigma}{\Delta} \quad \tp{\Delta}{t}{A}}
+  {\tp{\Gamma}{\subst{t}{\sigma}}{A}}
+
+\end{frame}
+
+
+\begin{frame}{Substitution typing \hfill \fbox{$\sub{\Gamma}{\sigma}{\Delta}$}}
+  \infax[Empty]
+  {\sub{\Gamma}{\sempty}{\cempty}}
+
+  \infrule[Pair]
+  {\sub{\Gamma}{\sigma}{\Delta} \quad \tp{\Gamma}{t}{A}}
+  {\sub{\Gamma}{\pair{\sigma}{\sing{x}{t}}}{\Delta \cext \bd{x}{A}}}
+
+  \infax[Weaken]
+  {\sub{\Gamma \cext \bd{x}{A}}{\wk}{\Gamma}}
+
+  \infax[Id]
+  {\sub{\Gamma}{\id}{\Gamma}}
+
+  \infrule[Comp]
+  {\sub{\Gamma}{\sigma}{\Delta} \quad \sub{\Delta}{\rho}{E}}
+  {\sub{\Gamma}{\scomp{\rho}{\sigma}}{E}}
+\end{frame}
+
+
+\begin{frame}{Update: term equality \hfill \fbox{$\teq{\Gamma}{t}{u}{A}$}}
+
+  \infrule[E-$\beta$]
+  {\tp{\Gamma \cext \bd{x}{A}}{t}{B} \quad \tp{\Gamma}{u}{A}}
+  {\teq{\Gamma}{\app{(\lam{x}{t})}{u}}{\subst{t}{\pair{\id}{\sing{x}{u}}}}{B}}
+  %
+  \pause
+  %
+  New rules:
+  %
+  \bigskip
+
+  \begin{minipage}[t]{.3\linewidth}
+    \infrule[ESub]
+    {\seq{\Gamma}{\sigma}{\sigma'}{\Delta} \\ \teq{\Delta}{t}{t'}{A}}
+    {\teq{\Gamma}{\subst{t}{\sigma}}{\subst{t'}{\sigma'}}{A}}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{.37\linewidth}
+    \infrule[EAssoc]
+    {\sub{\Gamma}{\rho}{\Delta} \\ \sub{\Delta}{\sigma}{E} \quad \tp{E}{t}{A}}
+    {\teq{\Gamma}{\subst{\subst{t}{\sigma}}{\rho}}{%
+        \subst{t}{\scomp{\sigma}{\rho}}}{A}}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{.25\linewidth}
+    \infrule[EId]
+    {\tp{\Gamma}{t}{A}}
+    {\teq{\Gamma}{\subst{t}{\id}}{t}{A}}
+  \end{minipage}
+  %
+  \bigskip
+
+  \begin{minipage}[t]{.4\linewidth}
+    \infrule[EVarS]
+    {\sub{\Gamma}{\sigma}{\Delta} \quad \tp{\Gamma}{t}{A}}
+    {\teq{\Gamma}{\subst{\v{x}}{\pair{\sigma}{\sing{x}{t}}}}{t}{A}}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{.59\linewidth}
+    \infrule[EAppS]
+    {\sub{\Gamma}{\sigma}{\Delta} \quad \tp{\Delta}{t}{\fun{A}{B}} \quad%
+      \tp{\Delta}{u}{A}}
+    {\teq{\Gamma}{\subst{(\app{t}{u})}{\sigma}}{%
+        \app{\subst{t}{\sigma}}{\subst{u}{\sigma}}}{B}}
+  \end{minipage}
+  %
+  \infrule[EAbsS]
+  {\sub{\Gamma}{\sigma}{\Delta} \quad \tp{\Delta \cext \bd{x}{A}}{t}{B}}
+  {\teq{\Gamma}{\subst{(\lam{x}{t})}{\sigma}}{%
+      \lam{x}{\subst{t}{\pair{\scomp{\sigma}{\wk}}{\sing{x}{\v{x}}}}}}{%
+      \fun{A}{B}}}
+\end{frame}
+
+
+\begin{frame}{Typing the RHS of $\beta$-contraction}
+
+  \begin{prooftree}
+    \AxiomC{$\tp{\Gamma \cext \bd{x}{A}}{t}{B}$}
+      \AxiomC{}
+      \LeftLabel{\rulelabel{Id}}
+      \UnaryInfC{$\sub{\Gamma}{\id}{\Gamma}$}
+        \AxiomC{$\tp{\Gamma}{u}{A}$}
+      \LeftLabel{\rulelabel{Pair}}
+      \BinaryInfC{$\sub{\Gamma}{\pair{\id}{\sing{x}{u}}}{%
+        \Delta \cext \bd{x}{A}}$}
+    \LeftLabel{\rulelabel{Sub}}
+    \BinaryInfC{$\tp{\Gamma}{\subst{t}{\pair{\id}{\sing{x}{u}}}}{B}$}
+  \end{prooftree}
+
+\end{frame}
+
+
+\begin{frame}{Substitution equality (1/2)%
+    \hfill \fbox{$\seq{\Gamma}{\sigma}{\rho}{\Delta}$}}
+
+  \infrule[SEAssoc]
+  {\sub{\Gamma}{\rho}{\Delta} \quad
+    \sub{\Delta}{\sigma}{E} \quad \sub{E}{\tau}{\Phi}}
+  {\seq{\Gamma}{\scomp{(\scomp{\tau}{\sigma})}{\rho}}{%
+      \scomp{\tau}{(\scomp{\sigma}{\rho})}}{\Phi}}
+
+  \begin{minipage}[t]{.31\linewidth}
+    \infrule[SEIdL]
+    {\sub{\Gamma}{\sigma}{\Delta}}
+    {\seq{\Gamma}{\scomp{\id}{\sigma}}{\sigma}{\Delta}}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{.31\linewidth}
+    \infrule[SEIdR]
+    {\sub{\Gamma}{\sigma}{\Delta}}
+    {\seq{\Gamma}{\scomp{\sigma}{\id}}{\sigma}{\Delta}}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{.28\linewidth}
+    \infax[SERefl]
+    {\seq{\Gamma}{\sigma}{\sigma}{\Delta}}
+  \end{minipage}
+  \bigskip
+
+  \begin{minipage}[t]{.33\linewidth}
+    \infrule[SESym]
+    {\seq{\Gamma}{\sigma_1}{\sigma_2}{\Delta}}
+    {\seq{\Gamma}{\sigma_2}{\sigma_1}{\Delta}}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{.62\linewidth}
+    \infrule[SETrans]
+    {\seq{\Gamma}{\sigma_1}{\sigma_2}{\Delta} \quad
+      \seq{\Gamma}{\sigma_2}{\sigma_3}{\Delta}}
+    {\seq{\Gamma}{\sigma_1}{\sigma_3}{\Delta}}
+  \end{minipage}
+
+  \infrule[SEPairS]
+  {\sub{\Gamma}{\rho}{\Delta} \quad \sub{\Delta}{\sigma}{E} \quad
+    \tp{\Delta}{t}{A}}
+  {\seq{\Gamma}{\scomp{\pair{\sigma}{\sing{x}{t}}}{\rho}}{%
+    \pair{\scomp{\sigma}{\rho}}{\sing{x}{\subst{t}{\rho}}}}{E, \bd{x}{A}}}
+\end{frame}
+
+
+\begin{frame}{Substitution equality (2/2)%
+    \hfill \fbox{$\seq{\Gamma}{\sigma}{\rho}{\Delta}$}}
+
+  \infrule[SE-$\beta$]
+  {\sub{\Gamma}{\sigma}{\Delta} \quad \tp{\Gamma}{t}{A}}
+  {\seq{\Gamma}{\scomp{\wk}{\pair{\sigma}{\sing{x}{t}}}}{\sigma}{\Delta}}
+
+  \infax[SE-$\eta$]
+  {\seq{\Gamma \cext \bd{x}{A}}{\id}{%
+      \pair{\wk}{\sing{x}{\v{x}}}}{\Gamma \cext \bd{x}{A}}}
+
+  \infrule[SEEmpty]
+  {\sub{\Gamma}{\sigma}{\cempty} \quad \sub{\Gamma}{\sigma'}{\cempty}}
+  {\seq{\Gamma}{\sigma}{\sigma'}{\cempty}}
+
+  \infrule[SEComp]
+  {\seq{\Gamma}{\rho}{\rho'}{\Delta} \quad
+      \seq{\Delta}{\sigma}{\sigma'}{E}}
+    {\seq{\Gamma}{\scomp{\sigma}{\rho}}{\scomp{\sigma'}{\rho'}}{E}}
+
+  \infrule[SEPair]
+  {\seq{\Gamma}{\sigma}{\sigma'}{\Delta} \quad \teq{\Gamma}{t}{t'}{A}}
+  {\seq{\Gamma}{\pair{\sigma}{\sing{x}{t}}}{%
+      \pair{\sigma}{\sing{x}{t'}}}{\Delta \cext \bd{x}{A}}}
+\end{frame}
+
+
+\section{De Bruijn indices}
+\label{sec:debruijn}
+
+\renewcommand{\lam}[2]{\t{\lambda #2}}
+\renewcommand{\bd}[2]{#2}
+\renewcommand{\sing}[2]{\t{#2}}
+
+\begin{frame}{Getting rid of variables: de Bruijn indices}
+
+  \begin{alignat*}{2}
+    \mathcal{V} \quad \ni &\quad&
+      \v{0}, \v{1}, \v{2}, &\dots
+      \tag{Variable}\\
+    \mathcal{T} \quad \ni &&
+      \t{s}, \t{t}, \t{u} &::= \v{i} \DefOr \lam{x}{t} \DefOr
+      \app{s}{t} \DefOr \subst{t}{\sigma}
+      \tag{Term}\\
+    \mathcal{A} \quad \ni &&
+      A, B, C &::= \base \DefOr A \to B
+      \tag{Type}\\
+    \mathcal{C} \quad \ni &&
+      \Gamma, \Delta, E &::= \cempty \DefOr \Gamma \cext \bd{x}{A}
+      \tag{Context}\\
+    \mathcal{S} \quad \ni &&
+      \s{\rho}, \s{\sigma}, \s{\tau} &::=
+      \sempty \DefOr \pair{\sigma}{t} \DefOr \wk \DefOr \id \DefOr
+      \scomp{\rho}{\sigma}
+      \tag{Substitution}\\
+  \end{alignat*}
+\end{frame}
+
+\begin{frame}{Typing with de Bruijn indices}
+  \infax[Var]
+  {\tp{\bd{x_n}{A_n}, \dotsc, \bd{x_0}{A_0}}{\v{i}}{A_i}}
+
+  \infrule[Abs]
+  {\tp{\Gamma \cext \bd{x}{A}}{t}{B}}
+  {\tp{\Gamma}{\lam{x}{t}}{\fun{A}{B}}}
+
+  \infrule[Pair]
+  {\sub{\Gamma}{\sigma}{\Delta} \quad \tp{\Gamma}{t}{A}}
+  {\sub{\Gamma}{\pair{\sigma}{\sing{x}{t}}}{\Delta \cext \bd{x}{A}}}
+
+  \infrule[E-$\beta$]
+  {\tp{\Gamma \cext \bd{x}{A}}{t}{B} \quad \tp{\Gamma}{u}{A}}
+  {\teq{\Gamma}{\app{(\lam{x}{t})}{u}}{\subst{t}{\pair{\id}{\sing{x}{u}}}}{B}}
+\end{frame}
+
+\newcommand{\suc}{\s{\operatorname{suc}}}
+
+\begin{frame}{Getting rid of indices: use just $\vz$ + weakening}
+  \bigskip
+  \emph{Observation:} we can express natural numbers in Peano-style.
+
+  \only<1>{%
+  \begin{align*}
+    \v{1} &= \suc(\vz)\\
+    \v{2} &= \suc(\suc(\vz))\\
+    \v{3} &= \suc(\suc(\suc(\vz)))\\
+    &\; \; \vdots
+  \end{align*}}%
+  \only<2->{%
+  \begin{align*}
+    \v{1} &= \subst{\vz}{\wk}\\
+    \v{2} &= \subst{\subst{\vz}{\wk}}{\wk}\\
+    \v{3} &= \subst{\subst{\subst{\vz}{\wk}}{\wk}}{\wk}\\
+    &\; \; \vdots
+  \end{align*}}%
+  \vspace{-2\baselineskip}%
+  \pause\pause
+  \begin{alignat*}{2}
+    \mathcal{V} \quad \ni &\quad&
+      \vz & \tag{Variable}\\
+    \mathcal{T} \quad \ni &&
+      \t{s}, \t{t}, \t{u} &::= \vz \DefOr \lam{x}{t} \DefOr
+      \app{s}{t} \DefOr \subst{t}{\sigma}
+      \tag{Term}\\
+    \mathcal{A} \quad \ni &&
+      A, B, C &::= \base \DefOr A \to B
+      \tag{Type}\\
+    \mathcal{C} \quad \ni &&
+      \Gamma, \Delta, E &::= \cempty \DefOr \Gamma \cext \bd{x}{A}
+      \tag{Context}\\
+    \mathcal{S} \quad \ni &&
+      \s{\rho}, \s{\sigma}, \s{\tau} &::=
+      \sempty \DefOr \pair{\sigma}{t} \DefOr \wk \DefOr \id \DefOr
+      \scomp{\rho}{\sigma}
+      \tag{Substitution}
+  \end{alignat*}
+\end{frame}
+
+\begin{frame}{Typing with de Bruijn indices}
+  \infax[Var]
+  {\tp{\Gamma \cext \bd{\vz}{A}}{\vz}{A}}
+
+  \infrule[Abs]
+  {\tp{\Gamma \cext \bd{x}{A}}{t}{B}}
+  {\tp{\Gamma}{\lam{x}{t}}{\fun{A}{B}}}
+
+  \infrule[Pair]
+  {\sub{\Gamma}{\sigma}{\Delta} \quad \tp{\Gamma}{t}{A}}
+  {\sub{\Gamma}{\pair{\sigma}{\sing{x}{t}}}{\Delta \cext \bd{x}{A}}}
+
+  \infrule[E-$\beta$]
+  {\tp{\Gamma \cext \bd{x}{A}}{t}{B} \quad \tp{\Gamma}{u}{A}}
+  {\teq{\Gamma}{\app{(\lam{x}{t})}{u}}{\subst{t}{\pair{\id}{\sing{x}{u}}}}{B}}
+\end{frame}
+
+
+\section{Correspondences}
+\label{sec:CHL}
+
+\begin{frame}{Getting rid of contexts: products}
+
+  \emph{Observation:} we can express contexts as (cartesian) products.
+
+  \only<1>{
+  \begin{alignat*}{2}
+    \mathcal{V} \quad \ni &\quad&
+      \vz & \tag{Variable}\\
+    \mathcal{T} \quad \ni &&
+      \t{s}, \t{t}, \t{u} &::= \vz \DefOr \lam{x}{t} \DefOr
+      \app{s}{t} \DefOr \subst{t}{\sigma}
+      \tag{Term}\\
+    \mathcal{A} \quad \ni &&
+      A, B, C &::= \base \DefOr A \to B
+      \tag{Type}\\
+    \mathcal{C} \quad \ni &&
+      \Gamma, \Delta, E &::= \cempty \DefOr \Gamma \cext \bd{x}{A}
+      \tag{Context}\\
+    \mathcal{S} \quad \ni &&
+      \s{\rho}, \s{\sigma}, \s{\tau} &::=
+      \sempty \DefOr \pair{\sigma}{t} \DefOr \wk \DefOr \id \DefOr
+      \scomp{\rho}{\sigma}
+      \tag{Substitution}
+  \end{alignat*}}
+  \only<2>{
+  \begin{alignat*}{2}
+    \mathcal{V} \quad \ni &\quad&
+      \v{\pi_2} & \tag{Variable}\\
+    \mathcal{T} \quad \ni &&
+      \t{s}, \t{t}, \t{u} &::= \v{\pi_2} \DefOr \lam{x}{t} \DefOr
+      \app{s}{t} \DefOr \subst{t}{\sigma}
+      \tag{Term}\\
+    \mathcal{A} \quad \ni &&
+      A, B, C &::= \base \DefOr A \to B
+      \tag{Type}\\
+    \mathcal{C} \quad \ni &&
+      \Gamma, \Delta, E &::= \unit \DefOr \Gamma \times \bd{x}{A}
+      \tag{Context}\\
+    \mathcal{S} \quad \ni &&
+      \s{\rho}, \s{\sigma}, \s{\tau} &::=
+      \sempty \DefOr \pair{\sigma}{t} \DefOr \s{\pi_1} \DefOr \id \DefOr
+      \scomp{\rho}{\sigma}
+      \tag{Substitution}
+  \end{alignat*}}
+  \only<3>{
+  \begin{alignat*}{2}
+    \mathcal{V} \quad \ni &\quad&
+      \v{\pi_2} & \tag{Variable}\\
+    \mathcal{T} \quad \ni &&
+      \t{s}, \t{t}, \t{u} &::= \v{\pi_2} \DefOr \lam{x}{t} \DefOr
+      \app{s}{t} \DefOr \subst{t}{\sigma}
+      \tag{Term}\\
+    \mathcal{A} \quad \ni &&
+    A, B, C, \Gamma, \Delta, E &::= \base \DefOr A \to B \DefOr
+      \unit \DefOr \Gamma \times \bd{x}{A}
+      \tag{Type}\\
+    \mathcal{S} \quad \ni &&
+      \s{\rho}, \s{\sigma}, \s{\tau} &::=
+      \sempty \DefOr \pair{\sigma}{t} \DefOr \s{\pi_1} \DefOr \id \DefOr
+      \scomp{\rho}{\sigma}
+      \tag{Substitution}
+  \end{alignat*}}
+  \only<4->{
+  \begin{alignat*}{2}
+    \mathcal{V} \; \ni &\;&
+      \v{\pi_2} & \tag{Variable}\\
+    \mathcal{T} \; \ni &&
+      \t{s}, \t{t}, \t{u}, \s{\rho}, \s{\sigma}, \s{\tau} &::=
+      \v{\pi_2} \DefOr \lam{x}{t} \DefOr \app{s}{t} \DefOr
+      \sempty \DefOr \pair{\sigma}{t} \DefOr \s{\pi_1} \DefOr \id \DefOr
+      \scomp{\rho}{\sigma}
+      \tag{Term}\\
+    \mathcal{A} \; \ni &&
+    A, B, C, \Gamma, \Delta, E &::= \base \DefOr A \to B \DefOr
+      \unit \DefOr \Gamma \times \bd{x}{A}
+      \tag{Type}
+  \end{alignat*}}
+\end{frame}
+
+\newcommand{\typingrules}{%
+  \infax[Var]
+  {\tp{\Gamma \cext \bd{\vz}{A}}{\vz}{A}}
+
+  \infrule[Abs]
+  {\tp{\Gamma \cext \bd{x}{A}}{t}{B}}
+  {\tp{\Gamma}{\lam{x}{t}}{\fun{A}{B}}}
+
+  \infrule[App]
+  {\tp{\Gamma}{t}{\fun{A}{B}} \quad \tp{\Gamma}{u}{A}}
+  {\tp{\Gamma}{\app{t}{u}}{B}}
+
+  \infax[Empty]
+  {\sub{\Gamma}{\sempty}{\cempty}}
+
+  \infrule[Pair]
+  {\sub{\Gamma}{\sigma}{\Delta} \quad \tp{\Gamma}{t}{A}}
+  {\sub{\Gamma}{\pair{\sigma}{\sing{x}{t}}}{\Delta \cext \bd{x}{A}}}
+
+  \infax[Weaken]
+  {\sub{\Gamma \cext \bd{x}{A}}{\pi_1}{\Gamma}}
+
+  \infrule[Comp]
+  {\sub{\Gamma}{\rho}{\Delta} \quad \sub{\Delta}{\sigma}{E}}
+  {\sub{\Gamma}{\scomp{\sigma}{\rho}}{E}}
+
+  \infax[Id]
+  {\sub{\Gamma}{\id}{\Gamma}}
+}
+
+\begin{frame}{Term typing \hfill \fbox{$\tp{\Gamma}{t}{A}$}}
+  \begin{multicols}{2}
+    \typingrules
+  \end{multicols}
+\end{frame}
+
+\renewcommand{\vz}{\v{\pi_2}}
+\renewcommand{\wk}{\s{\pi_1}}
+\renewcommand{\subst}[2]{\scomp{#1}{\t{#2}}}
+\renewcommand{\cempty}{\unit}
+\renewcommand{\cext}{\times}
+
+\begin{frame}{Term typing \hfill \fbox{$\tp{\Gamma}{t}{A}$}}
+  \begin{multicols}{2}
+    \typingrules
+  \end{multicols}
+\end{frame}
+
+\renewcommand{\tp}[3]{\t{#2}\colon #1 \longrightarrow #3}
+\renewcommand{\sub}[3]{\s{#2}\colon #1 \longrightarrow #3}
+
+\begin{frame}{Combinator typing \hfill \fbox{$\tp{\Gamma}{t}{A}$}}
+  \begin{multicols}{2}
+    \typingrules
+  \end{multicols}
+\end{frame}
+
+\renewcommand{\cempty}{\top}
+\renewcommand{\c}{\wedge}
+\renewcommand{\fun}[2]{#1 \supset #2}
+
+\renewcommand{\tp}[3]{#1 \Longrightarrow #3}
+\renewcommand{\sub}[3]{#1 \Longrightarrow #3}
+
+\begin{frame}{Combinatory IPL \hfill \fbox{$\tp{\Gamma}{t}{A}$}}
+  \begin{multicols}{2}
+    \typingrules
+  \end{multicols}
+\end{frame}
+
+
+
+%%% Backup slides  %%%
+
+% Save the frame number of the previous slide to restore the frame
+% counter after the backup slides.
+%\begin{backupslides}
+
+\appendix
+
+%\end{backupslides}
+
+%%% Bibliography
+
+%\bibliography{biblio}
+%\bibliographystyle{apalike}
+
+\begin{frame}[noframenumbering]{}
+  \vspace{1cm}
+  \begin{center}
+    \includegraphics[height=2cm]{img/cc_by_bw}
+    \vspace{2em}
+
+    Except where otherwise noted, this work is licensed under
+    \vspace{1em}
+
+    \url{http://creativecommons.org/licenses/by/3.0/}
+  \end{center}
+\end{frame}
+
+\end{document}
