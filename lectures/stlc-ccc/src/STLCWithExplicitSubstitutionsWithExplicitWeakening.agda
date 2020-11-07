@@ -1,6 +1,9 @@
 -- Terms are intrinsically typed.
 -- Terms are the typing derivations of untyped terms (which are not shown).
 
+-- This file contains the calculus of Section 1.6 in the lecture
+-- notes which realizes weakening by a substitution.
+
 -- For greek letters, type \ G <letter>.
 
 open import Types
