@@ -143,7 +143,7 @@ module Pre where
       }
     }
 
-  -- Projection and pairing mpps
+  -- Projection and pairing maps.
 
   π₁ : ∀ {p₁ p₂ p₃ q₁ q₂ q₃} {P : Preorder p₁ p₂ p₃} {Q : Preorder q₁ q₂ q₃} →
        P ×' Q ⟶ P
