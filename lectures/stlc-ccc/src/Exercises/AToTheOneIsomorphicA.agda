@@ -3,7 +3,7 @@
 open import Relation.Binary using (Setoid; IsEquivalence); open Setoid; open IsEquivalence
 import Relation.Binary.Reasoning.Setoid as EqR
 
-open import CCC as Foo  -- Hide this module
+open import CCC as _  -- Import the contents, hide the module itself
 
 module Exercises.AToTheOneIsomorphicA {o m e} (C : CCC o m e) (let open CCC C) where
 
@@ -38,12 +38,15 @@ module Exercises.AToTheOneIsomorphicA {o m e} (C : CCC o m e) (let open CCC C) w
 
   from-to : ∀{a} → Eq (comp from to) (id (Arr Unit a))
   from-to {a} = begin
-    comp from to                                                  ≈⟨ eq-refl ⟩
-    comp (curry π₁) (comp apply (pair (id _) (unit _)))           ≈⟨ curry-nat _ _ ⟩
-    curry (comp π₁ (lift (comp apply (pair (id _) (unit _)))))    ≈⟨ curry-cong β-π₁ ⟩
-    curry (comp (comp apply (pair (id _) (unit _))) π₁)           ≈⟨ curry-cong (assoc _ _ _) ⟩
-    curry (comp apply (comp (pair (id _) (unit _)) π₁))           ≈⟨ curry-cong (comp-cong eq-refl (pair-nat _ _ _)) ⟩
-    curry (comp apply (pair (comp (id _) π₁) (comp (unit _) π₁))) ≈⟨ curry-cong (comp-cong eq-refl (pair-cong (id-l _) (unit-unique _))) ⟩
-    curry (comp apply (pair π₁ (unit _)))                         ≈⟨ {!!} ⟩
+    comp from to                                                   ≈⟨ eq-refl ⟩
+    comp (curry π₁) (comp apply (pair (id _) (unit _)))            ≈⟨ curry-nat _ _ ⟩
+    curry (comp π₁ (lift (comp apply (pair (id _) (unit _)))))     ≈⟨ curry-cong β-π₁ ⟩
+    curry (comp (comp apply (pair (id _) (unit _))) π₁)            ≈⟨ curry-cong (assoc _ _ _) ⟩
+    curry (comp apply (comp (pair (id _) (unit _)) π₁))            ≈⟨ curry-cong (comp-cong eq-refl (pair-nat _ _ _)) ⟩
+    curry (comp apply (pair (comp (id _) π₁) (comp (unit _) π₁)))  ≈⟨ curry-cong (comp-cong eq-refl (pair-cong (id-l _) (unit-unique _))) ⟩
+    curry (comp apply (pair π₁ (unit _)))                          ≈⟨ curry-cong (comp-cong eq-refl (pair-cong eq-refl (eq-sym (unit-unique _)))) ⟩
+    curry (comp apply (pair π₁ π₂))                                ≈⟨ curry-cong (comp-cong eq-refl pair-π) ⟩
+    curry (comp apply (id _))                                      ≈⟨ curry-cong (id-r _) ⟩
+    curry apply                                                    ≈⟨ curry-apply ⟩
     id (Arr Unit a)
     ∎ where open EqR (Homs _ _)
