@@ -163,3 +163,22 @@ mutual
       → t ≅ u
       → u ≅ v
       → t ≅ v
+
+{- TODO: show admissible laws:
+
+-- Reflexivity
+
+-- Admissible identity substitution law (first functor law).
+
+teq-sub-id : ∀{Γ a} {t : Tm Γ a}
+      → t [ id ] ≅ t
+teq-sub-id {t = var n} = {!!}
+teq-sub-id {t = abs t} = {!!}
+teq-sub-id {t = app t u} = {!!}
+teq-sub-id {t = t [ s ]} = begin
+   t [ s ] [ id ] ≅⟨ ? ⟩
+   t [ s ] ∎
+
+-- Need equality reasoning here.
+-- To this end, I need that _≅_ is an equivalence relation.
+-}
