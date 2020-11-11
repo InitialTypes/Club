@@ -1,5 +1,6 @@
 \documentclass[a4paper,fleqn]{scrartcl}
 
+% Packages
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amsthm}
@@ -11,26 +12,6 @@
 
 \addbibresource{stlccc.bib}
 
-% Add a period to the end of an abbreviation unless there's one
-% already, then \xspace.
-% Source: https://stackoverflow.com/questions/3282319/correct-way-to-define-macros-etc-ie-in-latex
-\makeatletter
-\DeclareRobustCommand\onedot{\futurelet\@let@token\@onedot}
-\def\@onedot{\ifx\@let@token.\else.\null\fi\xspace}
-
-\def\eg{e.g\onedot}
-\def\Eg{E.g\onedot}
-\def\ie{i.e\onedot}
-\def\Ie{I.e\onedot}
-\def\cf{c.f\onedot}
-\def\Cf{C.f\onedot}
-\def\etc{etc\onedot}
-\def\vs{vs\onedot}
-\def\wrt{w.r.t\onedot}
-\def\dof{d.o.f\onedot}
-\def\etal{et al\onedot}
-\makeatother
-
 \title{From the simply-typed lambda-calculus to
   cartesian closed categories}
 \author{Andreas Abel}
@@ -39,38 +20,17 @@
      , November 2020%
      }
 
+% General macros
+\input{macros}
+
+% Specific macros
 \newcommand{\wttm}{\ensuremath{\mathsf{Tm}\,\Gamma\,a}}
-\newcommand{\Set}{\mathsf{Set}}
-\newcommand{\Ob}{\mathsf{Ob}}
-\newcommand{\Hom}{\mathsf{Hom}}
-\newcommand{\tid}{\mathsf{id}}
-\newcommand{\comp}{\circ}
-\newcommand{\To}{\Rightarrow}
-\newcommand{\too}{\longrightarrow}
-\newcommand{\tcurry}{\mathsf{curry}}
-\newcommand{\tuncurry}{\mathsf{uncurry}}
-\newcommand{\tapply}{\mathsf{apply}}
-\newcommand{\teval}{\mathsf{eval}}
-
-\newcommand{\der}{\,\vdash}
-\newcommand{\subst}[3]{#3[#2{\leftarrow}#1]}
-\newcommand{\substp}[3]{(#3)[#2{\leftarrow}#1]}
-\newcommand{\ru}[2]{\dfrac{#1}{#2}}
-\newcommand{\nru}[3]{#1\ \ru{#2}{#3}}
-\newcommand{\nrux}[4]{\nru{#1}{#2}{#3}\ #4}
-\newcommand{\rux}[3]{\ru{#1}{#2}\ #3}
-
 \newcommand{\Var}{\mathsf{Var}}
 \newcommand{\Ty}{\mathsf{Ty}}
 \newcommand{\Tm}{\mathsf{Tm}}
 \newcommand{\Exp}{\mathsf{Exp}}
 \newcommand{\Cxt}{\mathsf{Cxt}}
 \newcommand{\Subst}{\mathsf{Subst}}
-
-\newcommand{\GG}{\ensuremath{\Gamma}}
-\newcommand{\GD}{\ensuremath{\Delta}}
-\newcommand{\Ge}{\ensuremath{\varepsilon}}
-\newcommand{\Gs}{\ensuremath{\sigma}}
 
 
 \begin{document}
