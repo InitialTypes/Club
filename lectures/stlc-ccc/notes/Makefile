@@ -1,0 +1,4 @@
+default:
+	latexmk -pdf
+
+# EOF
