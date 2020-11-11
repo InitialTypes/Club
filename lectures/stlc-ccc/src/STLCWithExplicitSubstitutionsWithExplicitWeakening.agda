@@ -1,3 +1,5 @@
+{-# OPTIONS --postfix-projections #-}
+
 -- Terms are intrinsically typed.
 -- Terms are the typing derivations of untyped terms (which are not shown).
 
@@ -5,6 +7,9 @@
 -- notes which realizes weakening by a substitution.
 
 -- For greek letters, type \ G <letter>.
+
+open import Relation.Binary.Bundles using (Setoid)
+import Relation.Binary.Reasoning.Setoid as SetoidReasoning
 
 open import Types
 
@@ -228,19 +233,83 @@ mutual
        → s' ≈ s''
        → s ≈ s''
 
+-- Reflexivity is admissible.
 
+-- We can abuse teq-var-s to prove reflexivity of term equality.
 
-mutual
+teq-refl : ∀{Γ a} {t : Tm Γ a} → t ≅ t
+teq-refl {Γ} = teq-trans (teq-sym (teq-var-s {_} {Γ} {_} {id})) teq-var-s
 
-  -- We can abuse teq-var-s to prove reflexivity.
+-- We can abuse the identity laws to prove reflexivity of substitution equality.
 
-  teq-refl : ∀{Γ a} (t : Tm Γ a) → t ≅ t
-  teq-refl {Γ} t = teq-trans (teq-sym (teq-var-s {_} {Γ} {_} {id})) teq-var-s
+seq-refl : ∀{Γ Δ} {s : Sub Γ Δ} → s ≈ s
+seq-refl = seq-trans (seq-sym seq-id-l) seq-id-l
 
-  -- We can abuse the identity laws to prove reflexivity.
+-- Tm Γ a  forms a setoid under term equality _≅_.
 
-  seq-refl : ∀{Γ Δ} (s : Sub Γ Δ) → s ≈ s
-  seq-refl t = seq-trans (seq-sym seq-id-l) seq-id-l
+tmSetoid : ∀ Γ a → Setoid _ _
+tmSetoid Γ a = record
+  { Carrier = Tm Γ a
+  ; _≈_     = _≅_
+  ; isEquivalence = record
+    { refl  = teq-refl
+    ; sym   = teq-sym
+    ; trans = teq-trans
+    }
+  }
+
+-- Sub Γ Δ  forms a setoid under substitution equality _≅_.
+
+subSetoid : ∀ Γ Δ → Setoid _ _
+subSetoid Γ Δ = record
+  { Carrier = Sub Γ Δ
+  ; _≈_     = _≈_
+  ; isEquivalence = record
+    { refl  = seq-refl
+    ; sym   = seq-sym
+    ; trans = seq-trans
+    }
+  }
+
+-- Identity substitution does not change a term (first functor law).
+
+teq-sub-id : ∀{Γ a} {t : Tm Γ a}
+      → t [ id ] ≅ t
+
+-- Proof by induction on t, using the substitution propagation laws
+-- and the eta-law for the identity substitution.
+
+teq-sub-id {t = var₀}      = begin
+  var₀ [ id ]                ≈⟨ teq-sub teq-var seq-eta-pair ⟩
+  var₀ [ wk , var₀ ]         ≈⟨ teq-var-s ⟩
+  var₀                       ∎
+  where open SetoidReasoning (tmSetoid _ _)
+
+teq-sub-id {t = abs t}     = begin
+  abs t [ id ]               ≈⟨ teq-abs-s ⟩
+  abs (t [ id ∘ wk , var₀ ]) ≈⟨ teq-abs (teq-sub teq-refl lemma) ⟩
+  abs (t [ id ])             ≈⟨ teq-abs teq-sub-id ⟩
+  abs t                      ∎
+  where
+  lemma : ∀{Δ b} → id ∘ wk , var₀ ≈ id {Δ , b}
+  lemma = seq-sym           (begin
+    id                       ≈⟨ seq-eta-pair ⟩
+    (wk , var₀)              ≈⟨ seq-pair (seq-sym seq-id-l) teq-var ⟩
+    (id ∘ wk , var₀)         ∎)
+    where open SetoidReasoning (subSetoid _ _)
+  open SetoidReasoning (tmSetoid _ _)
+
+teq-sub-id {t = app t u}   = begin
+  app t u [ id ]             ≈⟨ teq-app-s ⟩
+  app (t [ id ]) (u [ id ])  ≈⟨ teq-app teq-sub-id teq-sub-id ⟩
+  app t u                    ∎
+  where open SetoidReasoning (tmSetoid _ _)
+
+teq-sub-id {t = t [ s ]}   = begin
+  t [ s ] [ id ]             ≈⟨ teq-sub-s ⟩
+  t [ s ∘ id ]               ≈⟨ teq-sub teq-refl seq-id-r ⟩
+  t [ s ]                    ∎
+  where open SetoidReasoning (tmSetoid _ _)
 
 
 ------------------------------------------------------------------------
@@ -299,3 +368,9 @@ mutual
   Sub⟪ seq-pair e e'  ⟫ = eq-pair Sub⟪ e ⟫ Tm⟪ e' ⟫
   Sub⟪ seq-sym e      ⟫ = eq-sym Sub⟪ e ⟫
   Sub⟪ seq-trans e e' ⟫ = eq-trans Sub⟪ e ⟫ Sub⟪ e' ⟫
+
+-- -}
+-- -}
+-- -}
+-- -}
+-- -}
