@@ -380,6 +380,7 @@ A & \ar[l]_{\pi_1} A \times B  \ar[r]^{\pi_2} & B \\
   \end{enumerate}
 \end{exercise}
 \begin{exercise}[Morphism product]
+  \label{ex:hom-product}
   Given $f_1 : A_1 \too B_1$ and $f_2 : A_2 \too B_2$, define $f_1
   \times f_2 : A_1 \times A_2 \too B_1 \times B_2$.
 \end{exercise}
@@ -403,6 +404,42 @@ The nullary product is called the terminal object.
 \begin{exercise}
   The terminal object is unique up to isomorphism.
 \end{exercise}
+\begin{exercise}[Naturality of $\bang$]
+  Show that $\bang$ is a natural transformation from $\Id$ to $\K1$
+  where $\Id : A \mapsto A$ is the identity functor and $\K1 : A
+  \mapsto 1$ the constant functor returning the terminal object.
+\end{exercise}
+\begin{exercise}[Naturality of pairing]
+  Let $\C$ be a category that has binary products.
+  \begin{enumerate}
+  \item Complete the definition of the product functor $\_\times\_ : [\C
+    \times \C, \C]$, $\_\times\_(A,B) = A \times B$ with its action
+    $\_\times\_$ on
+    morphisms (see \Cref{ex:hom-product}) and prove the functor laws.
+  \item Formulate (if possible) a naturality statement for pairing
+    $\langle\_,\_\rangle$ and prove naturality.
+  \end{enumerate}
+\end{exercise}
+
+\begin{definition}[Cartesian (monoidal) category]
+  A \emph{cartesian category}, more precisely, a \emph{cartesian
+    monoidal category}, has finite products (including the nullary
+  one).
+\end{definition}
+
+\begin{definition}[Lawvere theory]
+  A \emph{Lawvere theory} is a cartesion monoidal category $T$ where
+  each object is isomorphic to a power $X^n$ of a distinguished object
+  $X$, called the generic object for $T$.
+
+  A model of $T$ is a product-preserving functor $A : [T,\Set]$.
+\end{definition}
+\begin{example}
+  The Lawevere theory of groups has morphism $e : X^0 \too X$ and
+  $\vop : X^2 \too X$ and $\vinv : X \too X$.  A specific group can be
+  represented as a model of this theory, e.g., $\Int(X) = \bZ$ and
+  $\Int(e) = 0$ and $\Int(\vop)(i,j) = i + j$ and $\Int(\vinv)(i) = -i$.
+\end{example}
 
 \section{Cartesian Closed Categories}
 
@@ -452,6 +489,12 @@ The universal property of exponentials is visualized as follows:
    \end{enumerate}
 \end{exercise}
 
+\begin{definition}[CCC]
+  A \emph{cartesian closed category} has finite products and exponentials.
+\end{definition}
+\begin{exercise}
+  Show that $\Cat$ is cartesian closed.
+\end{exercise}
 
 \printbibliography
 
