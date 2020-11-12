@@ -214,10 +214,21 @@ notions should respect isomorphic objects.
   An \emph{isomorphim} (short \emph{iso}) between two objects $A$ and
   $B$ is a pair of morphisms $f : A \too B$ and $g : B \too A$ such
   that $g \comp f = \id[A]$ and $f \comp g = \id[B]$.
-  The existence of an isomorphism is written $A \cong B$.
+  The existence of an isomorphism is written $A \cong B$, and the set
+  of isomorphisms is denoted by $\Iso(A,B)$.
 \end{definition}
 \begin{lemma}[Inverse]
   Fixing $f$, the inverse $g$ is uniquely determined and denoted by $f^{-1}$.
+
+  In other words, being an isomorphism is not a property of a pair of
+  morphisms but a single morphism, that is for each pair of objects
+  $A$ and $B$ the function
+  %
+  \begin{gather*}
+    \Iso(A,B) \rightarrow \SetBuilder{ f \in \Hom(A,B) \given \exists g.\,g \comp f = \id \wedge f \comp g = \id } \quad (f,g) \mapsto f
+  \end{gather*}
+  %
+  is a bijection of sets with inverse $f \mapsto (f,f^{-1})$.
 \end{lemma}
 \begin{exercise}
   Prove this!

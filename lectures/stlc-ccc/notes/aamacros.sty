@@ -1,5 +1,7 @@
 \ProvidesPackage{aamacros}
 
+\RequirePackage{mathtools}
+
 % Add a period to the end of an abbreviation unless there's one
 % already, then \xspace.
 % Source: https://stackoverflow.com/questions/3282319/correct-way-to-define-macros-etc-ie-in-latex
@@ -19,6 +21,17 @@
 \def\dof{d.o.f\onedot}
 \def\etal{et al\onedot}
 \makeatother
+
+% Typeset { x | φ(x) }. Requires mathtools.
+% Source: https://ftp.acc.umu.se/mirror/CTAN/macros/latex/contrib/mathtools/mathtools.pdf (3.6 Paired delimiters)
+\DeclarePairedDelimiterX\SetBuilder[1]\{\}{%
+  \newcommand\given{%
+    \nonscript\:\delimsize\vert
+    \allowbreak
+    \nonscript\:
+    \mathopen{}}
+  #1
+}
 
 % Andreas Abel's evergreens
 \newcommand{\der}{\,\vdash}
@@ -46,6 +59,7 @@
 \newcommand{\Setoid}{\mathsf{Setoid}}
 \newcommand{\Ob}[1][]{\mathsf{Ob}_{#1}}
 \newcommand{\Hom}[1][]{\mathsf{Hom}_{#1}}
+\newcommand{\Iso}[1][]{\mathsf{Iso}_{#1}}
 \newcommand{\tid}{\mathsf{id}}
 \newcommand{\id}[1][]{\tid_{#1}}
 \newcommand{\comp}{\circ}
