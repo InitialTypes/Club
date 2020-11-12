@@ -211,7 +211,7 @@ $\Ob$.  This is by intention, speaking about object equality is not
 considered pure category-theoretic spirit.  All category-theoretic
 notions should respect isomorphic objects.
 \begin{definition}[Isomorphism]
-  An \emph{isomorphim} (short \emph{iso}) between two objects $A$ and
+  An \emph{isomorphism} (short \emph{iso}) between two objects $A$ and
   $B$ is a pair of morphisms $f : A \too B$ and $g : B \too A$ such
   that $g \comp f = \id[A]$ and $f \comp g = \id[B]$.
   The existence of an isomorphism is written $A \cong B$, and the set
@@ -304,7 +304,7 @@ Also, since there is little chance of confusion, one often writes $F :
   ``Forgetting'' algebraic structure gives rise to trivial functors,
   the so-called \emph{forgetful functors}, often denoted by $U$.  For
   example, $U : \Grp \to \Set$ maps a groups to their carriers, and
-  group morphisms to ther underlying functions on the carriers.
+  group morphisms to their underlying functions on the carriers.
 
   A forgetful functor does nothing to the ``values'', only changes
   their ``types''.
@@ -317,7 +317,7 @@ Also, since there is little chance of confusion, one often writes $F :
 Since functors are not mathematical structures (such as groups and
 categories) it is not obvious what the notion of morphism between two
 functors $F,G : [\C,\D]$ should be.  The definition states that it is
-a family of morphims $F A \too G A$ parametric in $A$:
+a family of morphisms $F A \too G A$ parametric in $A$:
 \begin{definition}[Natural transformation]
   Given functors $F,G : [\C,\D]$, a \emph{natural transformation}
   $\eta : F \todot G$ is a family of morphisms $\eta_A : F A \too G A$
@@ -423,7 +423,7 @@ The nullary product is called the terminal object.
   a unique morphism $h : C \too T$.
 
   The uniqueness of $h$ justifies the notation $h = \bang[C]$.
-  Since $T$ is unique up to isomorphism (see below), it is usullay
+  Since $T$ is unique up to isomorphism (see below), it is usually
   denoted by $1$.
 \end{definition}
 \begin{exercise}
@@ -460,14 +460,14 @@ The nullary product is called the terminal object.
 \end{definition}
 
 \begin{definition}[Lawvere theory]
-  A \emph{Lawvere theory} is a cartesion monoidal category $T$ where
+  A \emph{Lawvere theory} is a cartesian monoidal category $T$ where
   each object is isomorphic to a power $X^n$ of a distinguished object
   $X$, called the generic object for $T$.
 
   A model of $T$ is a product-preserving functor $A : [T,\Set]$.
 \end{definition}
 \begin{example}
-  The Lawevere theory of groups has morphism $e : X^0 \too X$ and
+  The Lawvere theory of groups has morphism $e : X^0 \too X$ and
   $\vop : X^2 \too X$ and $\vinv : X \too X$.  A specific group can be
   represented as a model of this theory, e.g., $\Int(X) = \bZ$ and
   $\Int(e) = 0$ and $\Int(\vop)(i,j) = i + j$ and $\Int(\vinv)(i) = -i$.
