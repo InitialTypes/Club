@@ -291,6 +291,8 @@ A \emph{functor} $F : [\C,\D]$ is a category morphism:
     \item For any object $A : \C$ we have $F_1(\id[A]) = \id[F_0A]$.
     \item For any pair of morphisms $f : \C(A,B)$ and $g : \C(B,C)$ we
       have $F_1(g \comp_\C f) = F_1g \comp_\D F_1f$.
+    \item For any pair of parallel morphisms $f$, $f' : \C(A,B)$ such
+      that $f = f'$ we have $F_1(f) = F_1(f')$.
     \end{enumerate}
   \end{enumerate}
 \end{definition}
