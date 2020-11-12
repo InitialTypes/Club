@@ -2,7 +2,7 @@ default: ccc.pdf
 
 all: ccc.pdf stlccc.pdf
 
-%.pdf : %.tex macros.tex
+%.pdf : %.tex aamacros.sty
 	latexmk -pdf $<
 
 # EOF
