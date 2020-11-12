@@ -5,7 +5,7 @@
 \usepackage{amsfonts}
 \usepackage{amsthm}
 \usepackage[style=authoryear]{biblatex}
-\usepackage{enumitem}
+\usepackage[inline]{enumitem}
 \usepackage{xspace}
 \usepackage[all]{xy}
 
@@ -152,6 +152,17 @@ Besides organizing algebraic structures, categories can also
   \label{ex:pmon}
   Can any partial monoid be represented as category as well?  If yes,
   how?  If no, give a counterexample!
+
+  Recall that a set $M$ with a distinguished element $e : M$ and a
+  \emph{partial} binary operation $-\circ- : M \times M \rightarrow M$
+  is called a \emph{partial} monoid if
+  %
+  \begin{enumerate*}
+  \item $e \circ x = x = x \circ e$ for each element $x : M$, and
+  \item $(x \times y) \times z = x \times (y \times z)$ if
+    $y \times z$ and $x \times (y \times z)$, or $x \times y$ and
+    $(x \times y) \times z$ are defined.
+  \end{enumerate*}
 \end{exercise}
 \begin{example}[Preorder]
   Any preorder $(A,\leq)$ can be presented as a thin category with $\Ob =
