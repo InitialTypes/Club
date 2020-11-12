@@ -169,7 +169,9 @@ Besides organizing algebraic structures, categories can also
   A$ and $\Hom(a,b) = \{ 0 \mid a \leq b \}$.  Identity is reflexivity
   and composition is transitivity.
 
-  A category is called \emph{thin} if each homset has at least one inhabitant.
+  A category $\C$ is called \emph{thin} if each homset $\Hom[\C](A,B)$
+  has \emph{at most one} inhabitant, that is for all pairs of parallel
+  morphisms $f$, $f' : A \too B$ in $\C$ we have $f = f'$.
 \end{example}
 \begin{example}[Relations]
   The category $\Rel$ has types as objects and binary relations as
