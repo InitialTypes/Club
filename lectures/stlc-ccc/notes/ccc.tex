@@ -1,0 +1,472 @@
+\documentclass[a4paper,fleqn]{scrartcl}
+
+% Packages
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage[style=authoryear]{biblatex}
+\usepackage{enumitem}
+\usepackage{xspace}
+\usepackage[all]{xy}
+
+\usepackage{hyperref} % before cleveref
+\usepackage{cleveref} % wants to be last, but before the theorem defs
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+
+%\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+\newtheorem{example}{Example}
+\newtheorem*{solution}{Solution}
+\newtheorem{exercise}{Exercise}
+
+% \crefname{exercise}{exercise}{exercises}
+
+\addbibresource{stlccc.bib}
+
+\title{Cartesian closed categories}
+\author{Andreas Abel}
+\date{November 2020%
+     }
+
+% General macros
+\input{macros}
+
+% Specific macros
+\newcommand{\wttm}{\ensuremath{\mathsf{Tm}\,\Gamma\,a}}
+\newcommand{\Var}{\mathsf{Var}}
+\newcommand{\Ty}{\mathsf{Ty}}
+\newcommand{\Tm}{\mathsf{Tm}}
+\newcommand{\Exp}{\mathsf{Exp}}
+\newcommand{\Cxt}{\mathsf{Cxt}}
+\newcommand{\Subst}{\mathsf{Subst}}
+
+% Categories
+\newcommand{\C}{\mathcal{C}}
+\newcommand{\Eq}{\mathsf{Eq}}
+
+
+
+\begin{document}
+\maketitle
+
+Overview:
+\begin{enumerate}
+\item Categories
+\item Functors and natural transformations
+\item Products
+\item Exponentials
+\end{enumerate}
+
+\section{Categories}
+\label{sec:cat}
+
+\subsection{Definition and examples}
+
+\begin{definition}[Category]
+  \label{def:cat}
+  A category $\C$ is given by the following data:
+  \begin{enumerate}
+  \item Types:
+    \begin{enumerate}
+    \item A type $\Ob$ of \emph{objects}.
+    \item For each pair of objects $A,B : \Ob$, a type $\Hom(A,B)$ of
+      (homo)morphisms $f : A \too B$.
+    \item For each pair of objects $A,B : \Ob$, an equivalence
+      relation $\Eq(A,B)$ on $\Hom(A,B)$.
+      Given $f,g : \Hom(A,B)$, we write $f = g$ for $\Eq(A,B)(f,g)$.
+    \end{enumerate}
+  \item Operations:
+    \begin{enumerate}
+    \item For each object $A : \Ob$ an automorphism $\id[A] : A \too
+      A$ (identity).
+    \item For each pair $f : A \too B$ and $g : B \too C$ of morphisms a
+      morphism $g \comp f : A \too C$ (composition).
+    \end{enumerate}
+  \item Laws:
+    \begin{enumerate}
+    \item For each morphism $f : A \too B$ we have $\id[B] \comp f = f$
+      (left identity)
+      and $f \comp \id[A] = f$ (right identity).
+    \item For all morphisms $f : A \too B$ and $g : B \too C$ and $h : B
+      \too C$ we have $(h \comp g) \comp f = h \comp (g \comp f)$ (associativity).
+    \end{enumerate}
+  \end{enumerate}
+\end{definition}
+The arrow $A \too B$ is just a nice notation for $\Hom(A,B)$.
+It is also common to write $\C(A,B)$ to clarify that we mean the type $\Hom[\C](A,B)$
+of morphisms of category $\C$.  Also $A : \C$ is short for $A : \Ob[\C]$.
+\begin{remark}[Homsetoid]
+Since a type with an equivalence relation is called a \emph{setoid} we
+could just ask for a family $\Hom : \Ob \to \Ob \to \Setoid$.
+\end{remark}
+The prime example for categories are collections of algebraic
+structures and their structure-preserving homomorphisms.
+\begin{example}[Groups]
+  $\Grp$ is the category of groups and group homomorphisms.  More
+  precisely, the objects of $\Grp$ are groups, and an element
+  $f : \Grp(A,B)$ is a function $f : A \to B$ mapping the unit of $A$
+  to the unit of $B$ and the $A$-composition of two elements of $A$ to
+  the $B$-composition of their images under $f$.
+
+  Less abstractly, a group morphism $f : (A,0,+,-) \too (B,1,\times,{}^{-1})$
+  has to satisfy $f(0) = 1$ and $f(a+a') = f(b) \times f(b')$.
+\end{example}
+\begin{exercise}[Groups] \bla
+  \begin{enumerate}
+  \item
+  Give an example for a group morphism $f$.
+  \item
+  Show that a group morphism automatically preserves inverses, \ie,
+  $f(-a) = (f(a))^{-1}$.
+  \end{enumerate}
+\end{exercise}
+Analogously to groups, other algebraic structures can be organized as
+categories as well (monoids, rings, fields).  We exhibit the most
+basic examples:
+\begin{example}[Sets]
+  $\Set$ is the category of types $A$ and functions $f : A \to B$.
+\end{example}
+\begin{example}[Setoids]
+  $\Setoid$ is the category of setoids $(A,\approx_A)$ and
+  $\approx$-preserving functions, \ie, $f : A \too B$ must satisfy
+  $f(a) \approx_B f(a')$ whenever $a \approx_A a'$.
+\end{example}
+
+Besides organizing algebraic structures, categories can also
+\emph{implement} structures.
+\begin{example}[Monoid]
+  Each monoid $(M,e,\cdot)$ can be presented as category $\C_M$ with a
+  single object $1$ and $\Hom(1,1)=M$.  Then $\id[1] = e$ and $f \comp
+  g = f \cdot g$.
+\end{example}
+\begin{exercise}[Partial monoid]
+  \label{ex:pmon}
+  Can any partial monoid be represented as category as well?  If yes,
+  how?  If no, give a counterexample!
+\end{exercise}
+\begin{example}[Preorder]
+  Any preorder $(A,\leq)$ can be presented as a thin category with $\Ob =
+  A$ and $\Hom(a,b) = \{ 0 \mid a \leq b \}$.  Identity is reflexivity
+  and composition is transitivity.
+
+  A category is called \emph{thin} if each homset has at least one inhabitant.
+\end{example}
+\begin{example}[Relations]
+  The category $\Rel$ has types as objects and binary relations as
+  morphisms: $\Rel(A,B) = \Pot(A \times B)$.
+\end{example}
+\begin{example}[Contexts and substitutions]
+  Take the typing contexts $\Gamma$ of simply-typed lambda-calculus
+  as objects, $\Ob = \Cxt$, and the set of substitutions
+  $\Sub\,\GG\,\GD$ as morphisms from $\Gamma$ to $\Delta$.
+\end{example}
+
+\begin{definition}[Subcategory]
+  \label{def:subcat}
+  A category $\D$ is a \emph{subcategory} of $\C$ if $\Ob[\D]
+  \subseteq \Ob[\C]$ and $\Hom[\D](A,B) \subseteq \Hom[\C](A,B)$ for
+  all $A,B : \Ob[\D]$.
+
+  If $\Ob[\D] = \Ob[\C]$, the subcategory is \emph{wide}.
+
+  If $\Hom[\D](A,B) = \Hom[\C](A,B)$ for
+  all $A,B : \Ob[\D]$, the subcategory is \emph{full}.
+\end{definition}
+In other words, a subcategory $\D$ of $\C$ is a selection of objects
+and morphisms from $\C$ that still forms a category, \ie, is closed
+under identity and composition.
+% \begin{remark}
+%   Type-theoretically, one should rather define a subcategory of $\C$
+%   by restriction predicates $P : \Ob \to$
+% \end{remark}
+
+\subsection{On the equality of objects}
+
+Our definition of category does not include an equivalence relation on
+$\Ob$.  This is by intention, speaking about object equality is not
+considered pure category-theoretic spirit.  All category-theoretic
+notions should respect isomorphic objects.
+\begin{definition}[Isomorphism]
+  An \emph{isomorphim} (short \emph{iso}) between two objects $A$ and
+  $B$ is a pair of morphisms $f : A \too B$ and $g : B \too A$ such
+  that $g \comp f = \id[A]$ and $f \comp g = \id[B]$.
+  The existence of an isomorphism is written $A \cong B$.
+\end{definition}
+\begin{lemma}[Inverse]
+  Fixing $f$, the inverse $g$ is uniquely determined and denoted by $f^{-1}$.
+\end{lemma}
+\begin{exercise}
+  Prove this!
+\end{exercise}
+\begin{exercise}[Subcategory of isomorphisms]
+  Show that the isomorphisms of a category constitute a wide subcategory.
+\end{exercise}
+\begin{exercise}
+  Does the concept \emph{subcategory} (\Cref{def:subcat}) honor the
+  ideal that no category-theoretic concept should distinguish between
+  isomorphic objects?
+
+  If not, suggest a modification of the definition, or defend the
+  current definition against the ideal.
+\end{exercise}
+
+\subsection{Operations on categories}
+
+Some operations on the object types can be lifted to categories.
+\begin{enumerate}
+\item The product $\C \times \D$ of two categories forms again a
+  category with $\Ob[\C \times \D] = \Ob[\C] \times \Ob[\D]$.
+\item The latter can be generalized to nullary, finite, and even
+  infinite products.
+\item Any type can be turned into a \emph{discrete} category where the
+  identities are the only morphisms.
+\end{enumerate}
+
+\begin{definition}[Opposite category]
+  Given a category $\C$, its \emph{opposite} $\op\C$ has the same
+  objects but flipped morphisms, $\op\C(A,B) = \C(B,A)$, and thus
+  flipped composition: $f \comp_{\op\C} g = g \comp_\C f$.
+\end{definition}
+\begin{remark}
+  The opposite category is really just the original category with
+  morphisms relabeled so that source and target are formally exchanged.
+\end{remark}
+\begin{exercise}
+  Show that $\op\C$ is indeed a category.
+
+  Show that $\op{(\op\C)} = \C$.
+\end{exercise}
+
+\section{Functors and Natural Transformations}
+
+A \emph{functor} $F : [\C,\D]$ is a category morphism:
+\begin{definition}[Functor]
+  \label{def:functor}
+  Given categories $\C$ and $\D$ a functor $F : [\C,\D]$
+  is given by the following data:
+  \begin{enumerate}
+  \item Maps:
+    \begin{enumerate}
+    \item A function $F_0 : \Ob[\C] \to \Ob[\D]$.
+    \item For any pair of objects $A,B : \C$, a function $F_1 :
+      \Hom[\C](A,B) \to \Hom[\D](F_0A,F_0B)$.
+    \end{enumerate}
+  \item Laws:
+    \begin{enumerate}
+    \item For any object $A : \C$ we have $F_1(\id[A]) = \id[F_0A]$.
+    \item For any pair of morphisms $f : \C(A,B)$ and $g : \C(B,C)$ we
+      have $F_1(g \comp_\C f) = F_1g \comp_\D F_1f$.
+    \end{enumerate}
+  \end{enumerate}
+\end{definition}
+It is common to drop the indices $0$ and $1$ and simply write, \eg,
+$Ff : FA \too FB$.
+Also, since there is little chance of confusion, one often writes $F :
+\C \to \D$ instead of $F : [\C,\D]$.
+\begin{example}[Forgetful functor]
+  ``Forgetting'' algebraic structure gives rise to trivial functors,
+  the so-called \emph{forgetful functors}, often denoted by $U$.  For
+  example, $U : \Grp \to \Set$ maps a groups to their carriers, and
+  group morphisms to ther underlying functions on the carriers.
+
+  A forgetful functor does nothing to the ``values'', only changes
+  their ``types''.
+\end{example}
+\begin{exercise}
+  Define the duplication functor $\Dup : [\C,\C \times \C]$
+  from a category to its square.
+\end{exercise}
+
+Since functors are not mathematical structures (such as groups and
+categories) it is not obvious what the notion of morphism between two
+functors $F,G : [\C,\D]$ should be.  The definition states that it is
+a family of morphims $F A \too G A$ parametric in $A$:
+\begin{definition}[Natural transformation]
+  Given functors $F,G : [\C,\D]$, a \emph{natural transformation}
+  $\eta : F \todot G$ is a family of morphisms $\eta_A : F A \too G A$
+  indexed by $A : \C$ such that for all $f : A \too B$ we have $Gf
+  \comp \eta_A = \eta_B \comp Ff$.
+\end{definition}
+Diagrammatically, the commutation law can be depicted as follows:
+\[
+\xymatrix@R=8ex@C=10ex{
+A \ar[d]^f & F A \ar[d]^{F f} \ar[r]^{\eta_A} & G A \ar[d]^{G f} \\
+B & F B \ar[r]^{\eta_B} & G B \\
+}
+\]
+\begin{exercise}[Functor category]
+  Show that functors in $[\C,\D]$ form a category with natural
+  transformations as morphisms.
+\end{exercise}
+\begin{definition}[$\Cat$]
+  Taking categories $\C$ as objects themselves and functor sets
+  $[\C,\D]$ as homsets, we arrive at the category $\Cat$ of
+  categories!
+
+  For consistency reasons $\Ob[\Cat]$ needs to be a large type
+  containing categories $\C$ whose $\Ob[\C]$ is a small type.
+\end{definition}
+\begin{exercise}
+  Prove that functors are indeed closed under composition and that
+  $\Cat$ is indeed a category.
+\end{exercise}
+\begin{remark}[2-categories]
+  In $\Cat$, the functor types $[\C,\D]$ are only taken as sets, but
+  they are categories themselves!  Categories whose homsets are
+  categories again are called \emph{2-categories} or
+  \emph{bicategories}.  These have extra structure---we'll not dive
+  further into this now.
+\end{remark}
+
+
+\section{Cartesian Categories}
+
+Category theory rarely studies pure categories, but usually categories with
+extra structure.
+
+\begin{definition}[Product]
+  Given $A,B : \C$, a \emph{product} of $A$ and $B$ is given by the
+  following data:
+  \begin{enumerate}
+  \item An object $P : \C$, and
+  \item a pair of morphisms $\pi_1 : P \too A$ and $\pi_2 : P \too B$,
+    such that
+  \item for each object $C$ and morphisms $f : C \too A$ and $g : C
+    \too B$ there is a unique morphism $h : C \too P$ such that $\pi_1
+    \comp h = f$ and $\pi_2 \comp h = g$.
+  \end{enumerate}
+  The uniqueness of $h$ justifies the notation $h = \langle f,g \rangle$.
+  Since $P$ is unique up to isomorphism (see below),
+  the notation $P = A \times B$
+  is justified.
+\end{definition}
+The so-called \emph{universal property} that defines the product can
+be diagrammatically displayed as follows:
+\[
+\xymatrix@C=8ex@R=16ex{
+& \ar[dl]_f C \ar@{.>}[d]^{!h} \ar[dr]^g& \\
+A & \ar[l]_{\pi_1} A \times B  \ar[r]^{\pi_2} & B \\
+}
+\]
+%%We may also say that $P$ is a product of $A$ and $B$
+\begin{example}\bla
+  \begin{enumerate}
+  \item The cartesian product is the product in $\Set$, $\Setoid$,
+    $\Grp$ etc.
+  \item In $\Sub$, the cartesian product is context concatenation.
+  \end{enumerate}
+\end{example}
+\begin{exercise}
+  What is a product in a preorder?
+  Under which conditions do preorders have all products?
+\end{exercise}
+\begin{exercise}[Uniqueness of product]
+  Let $(P,\pi_1,\pi_2)$ and $(Q,q_1,q_2)$ be both products of $A$ and
+  $B$.  Show that $P \cong Q$.
+\end{exercise}
+\begin{exercise}[Commutativity]
+  Show that $A \times B \cong B \times A$.
+\end{exercise}
+\begin{exercise}[Derived laws]
+  Proof the following theorems using the universal property:
+  \begin{enumerate}
+  \item $\langle \pi_1,\pi_2 \rangle = \tid$.
+  \item $\langle f,g \rangle \comp h = \langle f \comp h,\; g \comp h \rangle$.
+  \end{enumerate}
+\end{exercise}
+\begin{exercise}[Morphism product]
+  Given $f_1 : A_1 \too B_1$ and $f_2 : A_2 \too B_2$, define $f_1
+  \times f_2 : A_1 \times A_2 \too B_1 \times B_2$.
+\end{exercise}
+
+The nullary product is called the terminal object.
+\begin{definition}[Terminal object]
+  An object $T : \C$ is \emph{terminal} if for any object $C$ there is
+  a unique morphism $h : C \too T$.
+
+  The uniqueness of $h$ justifies the notation $h = \bang[C]$.
+  Since $T$ is unique up to isomorphism (see below), it is usullay
+  denoted by $1$.
+\end{definition}
+\begin{exercise}
+  Give, if it exists, the terminal object in the categories $\Set$,
+  $\Setoid$, $\Grp$, $\Rel$.
+\end{exercise}
+\begin{exercise}
+  What is a terminal object in a preorder?
+\end{exercise}
+\begin{exercise}
+  The terminal object is unique up to isomorphism.
+\end{exercise}
+
+\section{Cartesian Closed Categories}
+
+In a cartesian category, we can represent first-order functions as
+morphisms $f : A_1 \times \dots \times A_n \too B$.  To get
+higher-order functions as in simply-typed lambda-calculus, we need to
+be able to internalize homsets as objects.
+
+\begin{definition}
+  Given $A,B : \C$, an \emph{exponential} of $B$ to the $A$ is given
+  by the following data:
+  \begin{enumerate}
+  \item An object $E : \C$ with
+  \item a morphism $\teval : E \times A \too B$, such that
+  \item for each $C$ and $f : C \times A \too B$ there is a unique $h
+    : C \too E$ such that $\teval \comp (h \times \id[A]) = f$.
+  \end{enumerate}
+  The uniqueness of $h$ justifies the notation $h = \tcurry(f)$ (also:
+  $h = \Lambda(f)$ or $h = \lambda(f)$).
+  Since $E$ is unique up to isomorphism, the notation $E = B^A$ or $E
+  = A \To B$ is justified.
+\end{definition}
+The universal property of exponentials is visualized as follows:
+\[
+\xymatrix@=16ex{
+  C \times A \ar@{.>}[d]_{\tcurry(f) \times \tid}
+      \ar[dr]^{f}\\
+  B^A \times A \ar[r]^{\tapply} & B \\
+}
+\]
+\begin{exercise}
+  Explain the exponentials of $\Set$ and $\Setoid$!
+  Does $\Grp$ have exponentials?
+\end{exercise}
+\begin{exercise}
+  Give an example of a preorder that has exponentials.
+\end{exercise}
+\begin{exercise}
+  Show that the exponential is unique up to isomorphism!
+\end{exercise}
+\begin{exercise}[Derived laws]
+   Prove these laws about exponentials:
+   \begin{enumerate}
+   \item $\tcurry(f) \comp h = \tcurry(f \comp (h \times \id))$.
+   \item $\tcurry(\teval) = \id[B^A]$.
+   \item $\tcurry(\teval \comp (f \times \id[A])) = f : C \to B^A$.
+   \end{enumerate}
+\end{exercise}
+
+
+\printbibliography
+
+\clearpage
+
+\appendix
+
+\section{Solutions}
+
+\begin{solution}[\Cref{ex:pmon}]
+  Given a partial monoid $(M,e,\cdot)$ let $\Ob = \Pot(M)$ and
+  $m : \Hom(A,B)$ if and only if $a \cdot m$ is defined for all $a \in A$ and $m
+  \cdot b$ is defined for all $b \in B$.  Then we can set $\id[A] = e$
+  and $f \comp g = f \cdot g$ just as in the case for total monoids.
+\end{solution}
+
+
+\end{document}

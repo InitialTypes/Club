@@ -27,6 +27,12 @@
 \newcommand{\nru}[3]{#1\ \ru{#2}{#3}}
 \newcommand{\nrux}[4]{\nru{#1}{#2}{#3}\ #4}
 \newcommand{\rux}[3]{\ru{#1}{#2}\ #3}
+\newcommand{\Pot}{\mathcal{P}}
+\newcommand{\bla}{\mbox{$ $}}
+\newcommand{\todot}{\stackrel{\cdot}{\to}}
+
+\newcommand{\mand}{\mbox{ and }}
+\newcommand{\mforall}{\mbox{ for all }}
 
 % Greek letters as in Agda input method
 \newcommand{\GG}{\ensuremath{\Gamma}}
@@ -36,9 +42,11 @@
 
 % CCCs
 \newcommand{\Set}{\mathsf{Set}}
-\newcommand{\Ob}{\mathsf{Ob}}
-\newcommand{\Hom}{\mathsf{Hom}}
+\newcommand{\Setoid}{\mathsf{Setoid}}
+\newcommand{\Ob}[1][]{\mathsf{Ob}_{#1}}
+\newcommand{\Hom}[1][]{\mathsf{Hom}_{#1}}
 \newcommand{\tid}{\mathsf{id}}
+\newcommand{\id}[1][]{\tid_{#1}}
 \newcommand{\comp}{\circ}
 \newcommand{\To}{\Rightarrow}
 \newcommand{\too}{\longrightarrow}
@@ -46,3 +54,13 @@
 \newcommand{\tuncurry}{\mathsf{uncurry}}
 \newcommand{\tapply}{\mathsf{apply}}
 \newcommand{\teval}{\mathsf{eval}}
+
+% Categories
+\newcommand{\Grp}{\mathsf{Grp}}
+\newcommand{\Rel}{\mathsf{Rel}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\Dup}{\mathsf{Dup}}
+\newcommand{\op}[1]{#1^{\mathsf{op}}}
+\newcommand{\Cat}{\mathsf{Cat}}
+\newcommand{\Sub}{\mathsf{Sub}}
+\newcommand{\bang}[1][]{\mathord{!}_{#1}}
