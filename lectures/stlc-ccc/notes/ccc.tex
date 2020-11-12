@@ -186,8 +186,10 @@ Besides organizing algebraic structures, categories can also
 \begin{definition}[Subcategory]
   \label{def:subcat}
   A category $\D$ is a \emph{subcategory} of $\C$ if $\Ob[\D]
-  \subseteq \Ob[\C]$ and $\Hom[\D](A,B) \subseteq \Hom[\C](A,B)$ for
-  all $A,B : \Ob[\D]$.
+  \subseteq \Ob[\C]$, $\Hom[\D](A,B) \subseteq \Hom[\C](A,B)$ for
+  all $A,B : \Ob[\D]$, $\id[\D,A] = \id[\C,A]$ for all $A : \Ob[\D]$,
+  and $g \comp_{\D} f = g \comp_{\C} f$ for all $f : \Hom[\D](A,B)$
+  and $g : \Hom[\D](B,C)$.
 
   If $\Ob[\D] = \Ob[\C]$, the subcategory is \emph{wide}.
 
