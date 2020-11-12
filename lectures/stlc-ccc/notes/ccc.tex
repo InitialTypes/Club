@@ -150,18 +150,33 @@ Besides organizing algebraic structures, categories can also
 \end{example}
 \begin{exercise}[Partial monoid]
   \label{ex:pmon}
-  Can any partial monoid be represented as category as well?  If yes,
-  how?  If no, give a counterexample!
+  Can any partial semigroup with identity be represented as category as well?  If yes,
+  how?  If no, give a counterexample! What about partial monoids?
 
-  Recall that a set $M$ with a distinguished element $e : M$ and a
-  \emph{partial} binary operation $\_\circ\_ : M \times M \rightarrow M$
-  is called a \emph{partial} monoid if
+  We call a set $M$ with a distinguished element $e : M$ and a partial
+  binary operation $\_\circ\_ : M \times M \rightharpoonup M$ a
+  \emph{partial semigroup with identity} if
   %
   \begin{enumerate*}
-  \item $e \circ x = x = x \circ e$ for each element $x : M$, and
-  \item $(x \circ y) \circ z = x \circ (y \circ z)$ if
-    $y \circ z$ and $x \circ (y \circ z)$, or $x \circ y$ and
-    $(x \circ y) \circ z$ are defined.
+  \item $(x \circ y) \circ z = x \circ (y \circ z)$ if $x \circ y$ and
+    $(x \circ y) \circ z$, or $y \circ z$ and $x \circ (y \circ z)$
+    are defined, and
+  \item $e \circ x = x = x \circ e$ for each $x : M$.
+  \end{enumerate*}
+
+  Let us call an element $o$ such that $z = x$ whenever
+  $z = o \circ x$ or $z = x \circ o$ a \emph{partial identity}. With
+  this in mind, we call a set $N$ with two unary operations $l$,
+  $r : N \rightarrow N$ and a partial binary operation
+  $\_\circ\_ : N \times N \rightharpoonup N$ a \emph{partial monoid}
+  if
+  %
+  \begin{enumerate*}
+  \item $(x \circ y) \circ z = x \circ (y \circ z)$ if $x \circ y$ and
+    $(x \circ y) \circ z$, $y \circ z$ and $x \circ (y \circ z)$, or
+    $x \circ y$ and $y \circ z$ are defined, and
+  \item $l(x)$ and $r(x)$ are partial identities such that
+    $l(x) \circ x$ and $x \circ r(x)$ are defined.
   \end{enumerate*}
 \end{exercise}
 \begin{example}[Preorder]
