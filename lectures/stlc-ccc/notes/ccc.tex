@@ -464,7 +464,10 @@ The nullary product is called the terminal object.
   each object is isomorphic to a power $X^n$ of a distinguished object
   $X$, called the generic object for $T$.
 
-  A model of $T$ is a product-preserving functor $A : [T,\Set]$.
+  A \emph{model} $A$ of $T$ is a product-preserving functor $A : [T,\Set]$
+  in the sense that for each $n \in \bN$ the set $A(X^{n})$ together
+  with the morphisms $A(\pi_{i}) : A(X^{n}) \rightarrow A(X)$ for $i
+  \leq n$ is a product of $n$ copies of the set $A(X)$.
 \end{definition}
 \begin{example}
   The Lawvere theory of groups has morphism $e : X^0 \too X$ and
