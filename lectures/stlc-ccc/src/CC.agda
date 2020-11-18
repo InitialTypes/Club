@@ -151,6 +151,10 @@ record CC o m e : Set (lsuc (o ⊔ m ⊔ e)) where
   pair-π : ∀{a b} → Eq (pair π₁ π₂) (id (Prod a b))
   pair-π = eq-sym (pair-unique π₁ π₂ (id _) isPair-π₁-id isPair-π₂-id)
 
+  -- Functorial action of Prod
+  Prod₁ : ∀{a a' b b'} (f : Hom a a') (g : Hom b b') → Hom (Prod a b) (Prod a' b')
+  Prod₁ f g = pair (comp f π₁) (comp g π₂)
+
   -- Lift a morphism under a binder.
   -- lift f = f × id
 
