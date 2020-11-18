@@ -48,12 +48,12 @@ Internal-CCC = record
       }
 
   -- Exponential object and application
-  ; Arr   = _⇒_
-  ; apply = apply
+  ; Arr  = _⇒_
+  ; eval = eval
 
   -- Currying and the computation law for application
   ; curry        = curry
-  ; β-apply      = λ _ → apply-curry
+  ; β-eval       = λ _ → eval-curry
 
   -- Uniqueness of curry
   ; curry-unique = curry-unique

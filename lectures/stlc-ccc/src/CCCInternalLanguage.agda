@@ -30,7 +30,7 @@ data Hom : (a b : Ty) → Set where
 
   -- Exponential
   curry : ∀ {a b c} → Hom (c * a) b → Hom c (a ⇒ b)
-  apply : ∀ {a b} → Hom ((a ⇒ b) * a) b
+  eval  : ∀ {a b} → Hom ((a ⇒ b) * a) b
 
 -- Defined morphism
 
@@ -42,7 +42,7 @@ lift : ∀{c a b} → Hom a b → Hom (a * c) (b * c)
 lift f = pair (f ∘ fst) snd
 
 uncurry : ∀ {a b c} → Hom c (a ⇒ b) → Hom (c * a) b
-uncurry f = apply ∘ lift f
+uncurry f = eval ∘ lift f
 
 -- Equalities
 
@@ -90,13 +90,13 @@ data _~_ : ∀ {a b} (f g : Hom a b) → Set where
 
   -- The β law.
 
-  apply-curry : ∀{a b c} {f : Hom (c * a) b}
-    → apply ∘ lift (curry f) ~ f
+  eval-curry : ∀{a b c} {f : Hom (c * a) b}
+    → eval ∘ lift (curry f) ~ f
 
   -- The η law.
 
-  curry-apply : ∀{a b}
-    → curry apply ~ id {a ⇒ b}
+  curry-eval : ∀{a b}
+    → curry eval ~ id {a ⇒ b}
 
   -- The naturality law.
 
@@ -148,12 +148,12 @@ open SetoidR
 
 -- A more general η-law.
 
-curry-apply' : ∀{a b c} (f : Hom c (a ⇒ b))
-  → curry (apply ∘ lift f) ~ f
+curry-eval' : ∀{a b c} (f : Hom c (a ⇒ b))
+  → curry (eval ∘ lift f) ~ f
 
-curry-apply' f = begin⟨ homSetoid _ _ ⟩
-  curry (apply ∘ lift f)   ≈⟨ eq-sym curry-comp ⟩
-  curry apply ∘ f          ≈⟨ eq-comp curry-apply eq-refl ⟩
+curry-eval' f = begin⟨ homSetoid _ _ ⟩
+  curry (eval ∘ lift f)    ≈⟨ eq-sym curry-comp ⟩
+  curry eval ∘ f           ≈⟨ eq-comp curry-eval eq-refl ⟩
   id ∘ f                   ≈⟨ id-l ⟩
   f
   ∎
@@ -179,14 +179,14 @@ lift-pair f g = begin⟨ homSetoid _ _ ⟩
 -- A more familiar β-law.
 
 beta : ∀ {a b c} (f : Hom (c * a) b) (g : Hom c a)
-  → apply ∘ pair (curry f) g ~ f ∘ pair id g
+  → eval ∘ pair (curry f) g ~ f ∘ pair id g
 beta f g = begin⟨ homSetoid _ _ ⟩
-    apply ∘ pair (curry f) g
+    eval ∘ pair (curry f) g
   ≈⟨ eq-comp eq-refl (eq-sym (lift-pair (curry f) g)) ⟩
-    apply ∘ (lift (curry f) ∘ pair id g)
+    eval ∘ (lift (curry f) ∘ pair id g)
   ≈⟨ eq-sym assoc ⟩
-    apply ∘ lift (curry f) ∘ pair id g
-  ≈⟨ eq-comp apply-curry eq-refl ⟩
+    eval ∘ lift (curry f) ∘ pair id g
+  ≈⟨ eq-comp eval-curry eq-refl ⟩
     f ∘ pair id g
   ∎
 
@@ -202,10 +202,10 @@ pair-unique f g h hyp₁ hyp₂ = begin⟨ homSetoid _ _ ⟩
   pair f g                   ∎
 
 curry-unique : ∀ {a b c} (f : Hom (c * a) b) (h : Hom c (a ⇒ b)) →
-               apply ∘ lift h ~ f → h ~ curry f
+               eval ∘ lift h ~ f → h ~ curry f
 curry-unique f h hyp = begin⟨ homSetoid _ _ ⟩
   h                      ≈⟨ eq-sym id-l ⟩
-  id ∘ h                 ≈⟨ eq-comp (eq-sym curry-apply) eq-refl ⟩
-  curry apply ∘ h        ≈⟨ curry-comp ⟩
-  curry (apply ∘ lift h) ≈⟨ eq-curry hyp ⟩
+  id ∘ h                 ≈⟨ eq-comp (eq-sym curry-eval) eq-refl ⟩
+  curry eval ∘ h         ≈⟨ curry-comp ⟩
+  curry (eval ∘ lift h)  ≈⟨ eq-curry hyp ⟩
   curry f                ∎

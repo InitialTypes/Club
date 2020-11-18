@@ -100,15 +100,15 @@ Setoid-CCC {a} = record
       }
 
   -- Exponential object and application
-  ; Arr   = _⇨_
-  ; apply = record
+  ; Arr  = _⇨_
+  ; eval = record
     { _⟨$⟩_ = λ{ (f , x)     → f ⟨$⟩ x }
     ; cong  = λ{ (f≈g , x≈y) → f≈g x≈y }
     }
 
   -- Currying and the computation law for application
   ; curry        = curry'
-  ; β-apply      = λ f → cong f
+  ; β-eval       = λ f → cong f
 
   -- Uniqueness of curry
   ; curry-unique = λ f h eq x₁≈x₂ y₁≈y₂ → eq (x₁≈x₂ , y₁≈y₂)

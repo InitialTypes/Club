@@ -22,7 +22,7 @@ module CCC.Sound {o m e} (C : CCC o m e) where
   ⦅ pair f g ⦆ = Cat.pair ⦅ f ⦆ ⦅ g ⦆
   ⦅ unit ⦆     = Cat.unit _
   ⦅ curry f ⦆  = Cat.curry ⦅ f ⦆
-  ⦅ apply ⦆    = Cat.apply
+  ⦅ eval ⦆     = Cat.eval
 
   ⟪_⟫ : ∀{a b} {f g : Hom a b} → f ~ g → Cat.Eq ⦅ f ⦆ ⦅ g ⦆  -- \<<  \>>
   ⟪ id-l ⟫          = Cat.id-l _
@@ -33,8 +33,8 @@ module CCC.Sound {o m e} (C : CCC o m e) where
   ⟪ id-pair ⟫       = Cat.eq-sym Cat.pair-π
   ⟪ pair-comp ⟫     = Cat.pair-nat _ _ _
   ⟪ unit ⟫          = Cat.unit-unique _
-  ⟪ apply-curry ⟫   = Cat.β-apply _
-  ⟪ curry-apply ⟫   = Cat.curry-apply
+  ⟪ eval-curry ⟫    = Cat.β-eval _
+  ⟪ curry-eval ⟫    = Cat.curry-eval
   ⟪ curry-comp ⟫    = Cat.curry-nat _ _
   ⟪ eq-comp e e' ⟫  = Cat.comp-cong ⟪ e ⟫ ⟪ e' ⟫
   ⟪ eq-pair e e' ⟫  = Cat.pair-cong ⟪ e ⟫ ⟪ e' ⟫

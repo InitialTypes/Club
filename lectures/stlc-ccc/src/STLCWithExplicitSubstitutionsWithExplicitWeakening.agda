@@ -328,7 +328,7 @@ mutual
   Tm⟦_⟧ : ∀ {Γ a} → Tm Γ a → Hom ⟦ Γ ⟧ a
   Tm⟦ var₀     ⟧ = snd
   Tm⟦ abs t    ⟧ = curry Tm⟦ t ⟧
-  Tm⟦ app t t' ⟧ = apply ∘ pair Tm⟦ t ⟧ Tm⟦ t' ⟧
+  Tm⟦ app t t' ⟧ = eval ∘ pair Tm⟦ t ⟧ Tm⟦ t' ⟧
   Tm⟦ t [ s ]  ⟧ = Tm⟦ t ⟧ ∘ Sub⟦ s ⟧
 
   Sub⟦_⟧ : ∀ {Γ Δ} → Sub Γ Δ → Hom ⟦ Γ ⟧ ⟦ Δ ⟧
@@ -342,7 +342,7 @@ mutual
 
   Tm⟪_⟫ : ∀ {Γ a} {t t' : Tm Γ a} → t ≅ t' → Tm⟦ t ⟧ ~ Tm⟦ t' ⟧
   Tm⟪ teq-beta       ⟫ = beta _ _
-  Tm⟪ teq-eta        ⟫ = eq-sym (curry-apply' _)
+  Tm⟪ teq-eta        ⟫ = eq-sym (curry-eval' _)
   Tm⟪ teq-var-s      ⟫ = snd-pair
   Tm⟪ teq-abs-s      ⟫ = curry-comp
   Tm⟪ teq-app-s      ⟫ = eq-trans assoc (eq-comp eq-refl pair-comp)
