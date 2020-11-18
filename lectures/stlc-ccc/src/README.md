@@ -1,4 +1,4 @@
-# Code for the STLC-CCC lectures ([notes](../notes/stlccc.pdf))
+# Code for the STLC-CCC lectures ([notes](../notes/))
 
 Tested with:
 
