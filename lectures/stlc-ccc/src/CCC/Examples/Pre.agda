@@ -184,40 +184,42 @@ module Pre where
 Pre-CCC : ∀ {a} → CCC (lsuc a) _ _
 Pre-CCC {a} = record
 
-  -- Objects and morphisms.
-  { Ob   = Preorder a a a
-  ; Homs = λ a b → ⌊ a ⇨ b ⌋
+  { cc = record
+      -- Objects and morphisms.
+      { Ob   = Preorder a a a
+      ; Homs = λ a b → ⌊ a ⇨ b ⌋
 
-  -- Category operations
-  ; id   = λ _ → id
-  ; comp = _∘_
+      -- Category operations
+      ; id   = λ _ → id
+      ; comp = _∘_
 
-  -- Category laws
-  ; id-l  = λ f → cong f
-  ; id-r  = λ f → cong f
-  ; assoc = λ f g h → cong (f ∘ g ∘ h)
+      -- Category laws
+      ; id-l  = λ f → cong f
+      ; id-r  = λ f → cong f
+      ; assoc = λ f g h → cong (f ∘ g ∘ h)
 
-  ; comp-cong = λ f≈f' g≈g' x≈y → f≈f' (g≈g' x≈y)
+      ; comp-cong = λ f≈f' g≈g' x≈y → f≈f' (g≈g' x≈y)
 
-  -- Product object and projections
-  ; Prod = _×'_
-  ; π₁   = π₁
-  ; π₂   = π₂
+      -- Product object and projections
+      ; Prod = _×'_
+      ; π₁   = π₁
+      ; π₂   = π₂
 
-  -- Pairing and β-laws
-  ; pair = <_,_>'
-  ; β-π₁ = λ {a b c f g} → f .cong
-  ; β-π₂ = λ {a b c f g} → g .cong
+      -- Pairing and β-laws
+      ; pair = <_,_>'
+      ; β-π₁ = λ {a b c f g} → f .cong
+      ; β-π₂ = λ {a b c f g} → g .cong
 
-  -- Uniqueness of pairing
-  ; pair-unique = λ f g h eq₁ eq₂ → < eq₁ , eq₂ >
+      -- Uniqueness of pairing
+      ; pair-unique = λ f g h eq₁ eq₂ → < eq₁ , eq₂ >
 
-  -- Terminal object
-  ; Unit = ⊤-preorder
-  ; unit = ⊤-intro'
+      -- Terminal object
+      ; Unit = ⊤-preorder
+      ; unit = ⊤-intro'
 
-  -- Uniqueness of terminal morphism
-  ; unit-unique = λ h _ → tt
+      -- Uniqueness of terminal morphism
+      ; unit-unique = λ h _ → tt
+      }
 
   -- Exponential object and application
   ; Arr   = _⇨_
