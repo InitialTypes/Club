@@ -105,8 +105,10 @@ The arrow $A \too B$ is just a nice notation for $\Hom(A,B)$.
 It is also common to write $\C(A,B)$ to clarify that we mean the type $\Hom[\C](A,B)$
 of morphisms of category $\C$.  Also $A : \C$ is short for $A : \Ob[\C]$.
 \begin{remark}[Homsetoid]
-Since a type with an equivalence relation is called a \emph{setoid} we
-could just ask for a family $\Hom : \Ob \to \Ob \to \Setoid$.
+Since a type with an equivalence relation is called a \emph{setoid},
+which come with a notion of map and have products, we could just ask
+for a family $\Hom : \Ob \to \Ob \to \Setoid$ and setoid maps
+$\_ \comp \_ : \Hom(B,C) \times \Hom(A,B) \to \Hom(A,C)$.
 \end{remark}
 The prime example for categories are collections of algebraic
 structures and their structure-preserving homomorphisms.
