@@ -61,6 +61,22 @@ record CC o m e : Set (lsuc (o ⊔ m ⊔ e)) where
       → Eq g g'
       → Eq (comp f g) (comp f' g')
 
+  -- Derived laws for convenience
+
+  comp-cong-l : ∀{a b c} {f f' : Hom b c} {g : Hom a b}
+    → Eq f f'
+    → Eq (comp f g) (comp f' g)
+  comp-cong-l f=f' = comp-cong f=f' eq-refl
+
+  comp-cong-r : ∀{a b c} {f : Hom b c} {g g' : Hom a b}
+    → Eq g g'
+    → Eq (comp f g) (comp f g')
+  comp-cong-r g=g' = comp-cong eq-refl g=g'
+
+  assoc' : ∀{a b c d} (f : Hom c d) (g : Hom b c) (h : Hom a b)
+    → Eq (comp f (comp g h)) (comp (comp f g) h)
+  assoc' f g h = eq-sym (assoc f g h)
+
   ---------------------------------------------------------------------------
   -- Cartesian
   ---------------------------------------------------------------------------
