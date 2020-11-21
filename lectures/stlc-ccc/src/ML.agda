@@ -16,6 +16,11 @@ record ML o m e : Set (lsuc (o ⊔ m ⊔ e)) where
     -- Functor M
     M₀       : (a : Ob) → Ob
     M₁       : {a b : Ob} → Hom a b → Hom (M₀ a) (M₀ b)
+    M₁-cong  : ∀{a b} {f f' : Hom a b}
+      → Eq f
+           f'
+      → Eq (M₁ f)
+           (M₁ f')
     M₁-id    : ∀{a}
       → Eq (M₁ (id a))
            (id (M₀ a))
