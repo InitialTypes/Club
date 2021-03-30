@@ -1,17 +1,15 @@
-open import Data.List hiding ([_]; _∷ʳ_)
-open import Data.List.Membership.Propositional
-open import Data.List.Relation.Binary.Sublist.Propositional
-  renaming (lookup to wk-var)
-open import Data.List.Relation.Unary.Any as Any hiding (here)
-open import Relation.Binary.PropositionalEquality hiding ([_])
-
-pattern here = Any.here refl
+open import Data.List hiding ([_])
+open import Data.List.Membership.Propositional 
+open import Relation.Binary.PropositionalEquality hiding ([_]; subst) 
+open import Data.Sum
 
 infix   8 _⊢_
 infix   8 _⊩_
-infixl  9 subst-here
+infixl  9 _[_]
+infixr  9 _⊆_
 infixl 10 _`,_
 infixl 10 _`,,_
+infixr 9  _⊨_
 infixr 10 _⇒_
 infixr 15 `∀_
 infixr 15 `∀[_]_
@@ -31,73 +29,107 @@ data Ty : Set where
 variable
   a b c : Ty
 
-Ctx = List Ty
+Ctx = Ty → Set
 
 variable
   Γ Γ' Γ'' : Ctx
   Δ Δ' Δ'' : Ctx
 
-pattern _`,_ Γ a = a ∷ Γ
+_s : Ty → Ctx
+a s = λ b → a ≡ b
 
 _`,,_ : (Γ Δ : Ctx) → Ctx
-_`,,_ = λ Γ Δ → Δ ++ Γ
+Γ `,, Δ = λ a → (Γ a) ⊎ (Δ a)
+
+_`,_ : Ctx → Ty → Ctx
+Γ `, a = a s `,, Γ
 
 data _⊢_ (Γ : Ctx) : Ty → Set where
-  var  : a ∈ Γ → Γ ⊢ a 
+  var  : Γ a → Γ ⊢ a 
   lam  : Γ `, a ⊢ b → Γ ⊢ a ⇒ b
   app  : Γ ⊢ a ⇒ b → Γ ⊢ a → Γ ⊢ b
 
   eq   : Γ ⊢ a → Γ ⊢ a → Γ ⊢ ⋆
   iota : Γ `, a ⊢ ⋆ → Γ ⊢ a 
 
-variable
-  t u : Γ ⊢ a
+-- variable
+--   t u : Γ ⊢ a
 
-b0 : a ∈ Γ `, a
-b0 = here
+-- b0 : a ∈ Γ `, a
+-- b0 = 
 
-b1 : a ∈ Γ `, a `, b
-b1 = there b0
+-- -- b1 : a ∈ Γ `, a `, b
+-- -- b1 = there b0
 
-b2 : a ∈ Γ `, a `, b `, c
-b2 = there b1
+-- -- b2 : a ∈ Γ `, a `, b `, c
+-- -- b2 = there b1
 
 v0 : Γ `, a ⊢ a
-v0 = var b0
+v0 = var (inj₁ refl)
 
 v1 : Γ `, a `, b ⊢ a
-v1 = var b1
+v1 = var (inj₂ (inj₁ refl))
 
 v2 : Γ `, a `, b `, c ⊢ a
-v2 = var b2
+v2 = var (inj₂ (inj₂ (inj₁ refl)))
 
 lam[_]_ : (a : Ty) → Γ `, a ⊢ b → Γ ⊢ a ⇒ b
 lam[_]_ _ = lam
 
+_⊆_ : Ctx → Ctx → Set
+Γ ⊆ Δ = ∀ (a : Ty) → Γ a → Δ a
+
+⊆-refl : Γ ⊆ Γ
+⊆-refl _ = λ x → x
+
+⊆-drop : Γ ⊆ Γ `, a
+⊆-drop _ = inj₂
+
+⊆-keep : (a : Ty) → Γ ⊆ Δ → Γ `, a ⊆ Δ `, a
+⊆-keep _ Γ⊆Δ _ (inj₁ x) = inj₁ x
+⊆-keep _ Γ⊆Δ _ (inj₂ y) = inj₂ (Γ⊆Δ _ y)
+
+⊆-dropsʳ : Γ ⊆ Γ `,, Γ'
+⊆-dropsʳ _ x = inj₁ x
+
+⊆-dropsˡ : Γ ⊆ Γ' `,, Γ
+⊆-dropsˡ _ x = inj₂ x
+
 wk : Γ ⊆ Γ' → Γ ⊢ a → Γ' ⊢ a
-wk Γ⊆Γ' (var x) = var (wk-var Γ⊆Γ' x)
-wk Γ⊆Γ' (lam t) = lam (wk (refl ∷ Γ⊆Γ') t)
+wk Γ⊆Γ' (var x)    = var (Γ⊆Γ' _ x)
+wk Γ⊆Γ' (lam t)    = lam (wk (⊆-keep _ Γ⊆Γ' ) t)
 wk Γ⊆Γ' (app t t₁) = app (wk Γ⊆Γ' t) (wk Γ⊆Γ' t₁)
-wk Γ⊆Γ' (eq t t₁) = eq (wk Γ⊆Γ' t₁) (wk Γ⊆Γ' t₁)
-wk Γ⊆Γ' (iota t) = iota (wk (refl ∷ Γ⊆Γ') t)
+wk Γ⊆Γ' (eq t t₁)  = eq (wk Γ⊆Γ' t₁) (wk Γ⊆Γ' t₁)
+wk Γ⊆Γ' (iota t)   = iota (wk (⊆-keep _ Γ⊆Γ') t)
 
-subst-here : Γ ⊢ a → Γ `, a `,, Δ ⊢ b → Γ `,, Δ ⊢ b
-subst-here a (lam t)         = lam (subst-here a t)
-subst-here a (app t u)       = app (subst-here a t) (subst-here a u)
-subst-here a (eq t u)        = eq (subst-here a t) (subst-here a u)
-subst-here a (iota P)        = iota (subst-here a P)
-subst-here {Δ = []} a (var here) = a
-subst-here {Δ = []} a (var (there v)) = var v
-subst-here {Δ = Δ `, b} a (var here) = var here
-subst-here {Δ = Δ `, b} a (var (there v)) = wk (_ ∷ʳ ⊆-refl) (subst-here a (var v))
+_⊨_ : Ctx → Ctx → Set
+Δ ⊨ Γ = ∀ (a : Ty) → Γ a → Δ ⊢ a 
 
-syntax subst-here a t = t [ a ]
+⊨-refl : Γ ⊨ Γ
+⊨-refl _ = var
 
-⊆-`, : Γ ⊆ Γ `, a
-⊆-`, = _ ∷ʳ ⊆-refl
+⊨-`,, : Γ ⊨ Δ → Γ' ⊨ Δ' → Γ `,, Γ' ⊨ Δ `,, Δ'
+⊨-`,, σ₁ σ₂ _ (inj₁ x) = wk ⊆-dropsʳ  (σ₁ _ x)
+⊨-`,, σ₁ σ₂ _ (inj₂ y) = wk ⊆-dropsˡ (σ₂ _ y)
+
+subst : Δ ⊨ Γ → Γ ⊢ a → Δ ⊢ a
+subst σ (var x)    = σ _ x
+subst σ (lam t)    = lam (subst (⊨-`,, ⊨-refl σ) t)
+subst σ (app t t₁) = app (subst σ t) (subst σ t₁)
+subst σ (eq t t₁)  = eq (subst σ t₁) (subst σ t₁)
+subst σ (iota t)   = iota (subst (⊨-`,, ⊨-refl σ) t)
+
+⊨-`, : Δ ⊨ Γ → Γ ⊢ a → Δ ⊨ Γ `, a
+⊨-`, σ t _ (inj₁ refl) = subst σ t
+⊨-`, σ t _ (inj₂ y)    = σ _ y
+
+-- syntax subst a t = t [ a ]
+
+_[_] : Γ `, a ⊢ b → Γ ⊢ a → Γ ⊢ b
+t [ u ] = subst (⊨-`, ⊨-refl u) t
 
 _p : Γ ⊢ a → Γ `, b ⊢ a
-_p = wk ⊆-`,
+_p = wk ⊆-drop
 
 T : Γ ⊢ ⋆
 T = eq (lam[ ⋆ ] v0) (lam[ ⋆ ] v0)
@@ -136,6 +168,7 @@ Form Γ = Γ ⊢ ⋆
 variable
   Φ : List (Form Γ)
   ψ ϕ φ : Form Γ
+  t u : Γ ⊢ a
 
 data _⊩_ (Φ : List (Form Γ)) : Form Γ → Set where
   Ass : t ∈ Φ → Φ ⊩ t
@@ -155,29 +188,29 @@ data _⊩_ (Φ : List (Form Γ)) : Form Γ → Set where
 T-true : Φ ⊩ T
 T-true = R (eq v0 (lam[ ⋆ ] v0))
            (A4 {t = v0} {u = lam[ ⋆ ] v0})
-           A4
+           {!A4!}
 
-truth-lemma : Φ ⊩ eq ψ T → Φ ⊩ ψ 
-truth-lemma = {!!}
+-- truth-lemma : Φ ⊩ eq ψ T → Φ ⊩ ψ 
+-- truth-lemma = {!!}
 
-`∀E :  Φ ⊩ `∀ ψ → Φ ⊩ ψ [ t ]
-`∀E p = {!!}
+-- `∀E :  Φ ⊩ `∀ ψ → Φ ⊩ ψ [ t ]
+-- `∀E p = {!!}
 
-∧E₁ :  Φ ⊩ φ ∧ ψ → Φ ⊩ φ
-∧E₁ p = {!!}
+-- ∧E₁ :  Φ ⊩ φ ∧ ψ → Φ ⊩ φ
+-- ∧E₁ p = {!!}
 
-LEM : Φ ⊩ φ ∨ ¬ φ
-LEM = {!!}
+-- LEM : Φ ⊩ φ ∨ ¬ φ
+-- LEM = {!!}
 
-I : Φ ⊩ φ `⇒ φ
-I = {!!}
+-- I : Φ ⊩ φ `⇒ φ
+-- I = {!!}
 
-eq-refl : ∀ (t : Γ ⊢ a) → Φ ⊩ eq t t
-eq-refl t = {!!}
+-- eq-refl : ∀ (t : Γ ⊢ a) → Φ ⊩ eq t t
+-- eq-refl t = {!!}
 
-eq-sym : ∀ (t u : Γ ⊢ a) → Φ ⊩ eq t u → _ -- Φ ⊩ eq u t 
-eq-sym t u r = R (eq v0 (u p)) r {!!}
+-- eq-sym : ∀ (t u : Γ ⊢ a) → Φ ⊩ eq t u → _ -- Φ ⊩ eq u t 
+-- eq-sym t u r = R (eq v0 (u p)) r {!!}
 
-eq-trans : ∀ (t u w : Γ ⊢ a) →
-         Φ ⊩ eq t u → Φ ⊩ eq u w → _ -- Φ ⊩ eq ϕ φ
-eq-trans t u w r q = R (eq (u p) v0) q {!!}
+-- eq-trans : ∀ (t u w : Γ ⊢ a) →
+--          Φ ⊩ eq t u → Φ ⊩ eq u w → _ -- Φ ⊩ eq ϕ φ
+-- eq-trans t u w r q = R (eq (u p) v0) q {!!}
