@@ -15,9 +15,9 @@ data _⊩_ (Φ : FormCtx Γ) : Form Γ → Set where
 
   A1 : Φ ⊩ `∀ ⋆ ⇒ ⋆ ﹒ v0 · T ∧ v0 · F ⇔ `∀ ⋆ ﹒ v1 · v0
 
-  A2 : Φ ⊩ `∀ a ﹒ `∀ a ﹒ (v1 `= v0) `⇒ `∀ a ⇒ ⋆ ﹒ v0 · v2 ⇔ v0 · v1
+  A2 : Φ ⊩ `∀ a ﹒ `∀ a ﹒ v1 `= v0 `⇒ `∀ a ⇒ ⋆ ﹒ v0 · v2 ⇔ v0 · v1
 
-  A3 : Φ ⊩ `∀ a ⇒ b ﹒ `∀ a ⇒ b ﹒ (v1 `= v0) ⇔ `∀ a ﹒ v2 · v0 `= v1 · v0
+  A3 : Φ ⊩ `∀ a ⇒ b ﹒ `∀ a ⇒ b ﹒ v1 `= v0 ⇔ `∀ a ﹒ v2 · v0 `= v1 · v0
 
   A4 : Φ ⊩ (`λ t) · u `= t [ u ]
 
