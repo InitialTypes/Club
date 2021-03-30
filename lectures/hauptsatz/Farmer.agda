@@ -25,11 +25,14 @@ data _⊩_ (Φ : FormCtx Γ) : Form Γ → Set where
 
   A6 : Φ ⊩ ¬ `∃! t `⇒ iota t `= ⊥
 
-T-true : Φ ⊩ T
-T-true = R {ψ = v0 `= `λ v0} (A4 {t = v0} {u = `λ v0}) A4
+eq-refl : Φ ⊩ t `= t
+eq-refl = {!R {ψ = v0 `= t p} (A4 {t = v0} {u = t}) A4!}
 
--- truth-lemma : Φ ⊩ eq ψ T → Φ ⊩ ψ 
--- truth-lemma = {!!}
+T-true : Φ ⊩ T
+T-true = eq-refl
+
+truth-lemma : Φ ⊩ T `= ψ → Φ ⊩ ψ
+truth-lemma p = R p T-true
 
 -- `∀E :  Φ ⊩ `∀ ψ → Φ ⊩ ψ [ t ]
 -- `∀E p = {!!}
@@ -43,12 +46,8 @@ T-true = R {ψ = v0 `= `λ v0} (A4 {t = v0} {u = `λ v0}) A4
 -- I : Φ ⊩ φ `⇒ φ
 -- I = {!!}
 
--- eq-refl : ∀ (t : Γ ⊢ a) → Φ ⊩ eq t t
--- eq-refl t = {!!}
+eq-sym : Φ ⊩ t `= u → Φ ⊩ u `= t
+eq-sym {u = u} p = {!R {ψ = v0 `= u 𝕡} p eq-refl!}
 
--- eq-sym : ∀ (t u : Γ ⊢ a) → Φ ⊩ eq t u → _ -- Φ ⊩ eq u t 
--- eq-sym t u r = R (eq v0 (u p)) r {!!}
-
--- eq-trans : ∀ (t u w : Γ ⊢ a) →
---          Φ ⊩ eq t u → Φ ⊩ eq u w → _ -- Φ ⊩ eq ϕ φ
--- eq-trans t u w r q = R (eq (u p) v0) q {!!}
+eq-trans : Φ ⊩ t `= u → Φ ⊩ u `= v → Φ ⊩ t `= v
+eq-trans {t = t} p q = {!R {ψ = t 𝕡 `= v0} q p!}
