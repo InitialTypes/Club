@@ -9,22 +9,20 @@ infix 8 _⊩_
 data _⊩_ (Φ : FormCtx Γ) : Form Γ → Set where
   Ass : t ∈ Φ → Φ ⊩ t
 
-  R : (ψ : Form (Γ `, a)) → Φ ⊩ eq t u → Φ ⊩ ψ [ t ]
-    --------------------------------------------------
-    →                  Φ ⊩ ψ [ u ]
+  R : Φ ⊩ t `= u → Φ ⊩ ψ [ t ]
+    --------------------------
+    →       Φ ⊩ ψ [ u ]
 
-  A1 : Φ ⊩ `∀ ⋆ ⇒ ⋆ ﹒ app v0 T ∧ app v0 F ⇔ `∀ ⋆ ﹒ app v1 v0
+  A1 : Φ ⊩ `∀ ⋆ ⇒ ⋆ ﹒ v0 · T ∧ v0 · F ⇔ `∀ ⋆ ﹒ v1 · v0
 
-  A2 : Φ ⊩ `∀ a ﹒ `∀ a ﹒ eq v1 v0 `⇒ `∀ a ⇒ ⋆ ﹒ app v0 v2 ⇔ app v0 v1
+  A2 : Φ ⊩ `∀ a ﹒ `∀ a ﹒ (v1 `= v0) `⇒ `∀ a ⇒ ⋆ ﹒ v0 · v2 ⇔ v0 · v1
 
-  A3 : Φ ⊩ `∀ a ⇒ b ﹒ `∀ a ⇒ b ﹒ eq v1 v0 ⇔ `∀ a ﹒ eq (app v2 v0) (app v1 v0)
+  A3 : Φ ⊩ `∀ a ⇒ b ﹒ `∀ a ⇒ b ﹒ (v1 `= v0) ⇔ `∀ a ﹒ v2 · v0 `= v1 · v0
 
-  A4 : {t : Γ `, a ⊢ b} {u : Γ ⊢ a} → Φ ⊩ eq (app (lam t) u) (t [ u ]) 
+  A4 : Φ ⊩ (`λ t) · u `= t [ u ]
 
 T-true : Φ ⊩ T
-T-true = R (eq v0 (lam[ ⋆ ] v0))
-           (A4 {t = v0} {u = lam[ ⋆ ] v0})
-           {!A4!}
+T-true = R {ψ = v0 `= `λ v0} (A4 {t = v0} {u = `λ v0}) {!A4!}
 
 -- truth-lemma : Φ ⊩ eq ψ T → Φ ⊩ ψ 
 -- truth-lemma = {!!}
