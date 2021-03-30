@@ -21,8 +21,12 @@ data _⊩_ (Φ : FormCtx Γ) : Form Γ → Set where
 
   A4 : Φ ⊩ (`λ t) · u `= t [ u ]
 
+  A5 : Φ ⊩ `∃! t `⇒ t [ iota t ]
+
+  A6 : Φ ⊩ ¬ `∃! t `⇒ iota t `= ⊥
+
 T-true : Φ ⊩ T
-T-true = R {ψ = v0 `= `λ v0} (A4 {t = v0} {u = `λ v0}) {!A4!}
+T-true = R {ψ = v0 `= `λ v0} (A4 {t = v0} {u = `λ v0}) A4
 
 -- truth-lemma : Φ ⊩ eq ψ T → Φ ⊩ ψ 
 -- truth-lemma = {!!}

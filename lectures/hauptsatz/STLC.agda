@@ -12,13 +12,15 @@ infix   8  _⊨_
 infixl 10 _`,_
 infixl 10 _`,,_
 infixr 10 _⇒_
-infixr 13 `∀_
 infixr 13 `∀_﹒_
+infixr 13 `∃_﹒_
 infixr 13 _`⇒_
 infixr 13 _⇔_
-infixl 14 _∨_
-infixl 15 _∧_
-infix  16 ¬_
+infixr 14 _∨_
+infixr 15 _∧_
+infixr 16 `∀_
+infixr 16 `∃_
+infixr 16 ¬_
 infixr 17 _`=_
 infixr 18 `λ_
 infixr 18 `λ_﹒_
@@ -29,11 +31,11 @@ infixl 20 _p
 pattern here     = Any.here refl
 pattern _`,_ Γ a = a ∷ Γ
 
-⊆-drop : ∀ {A : Set} {xs : List A} {x} → xs ⊆ x ∷ xs
+⊆-drop : ∀ {A : Set} {xs : List A} {x} → xs ⊆ xs `, x
 ⊆-drop here      = there here
 ⊆-drop (there p) = there (⊆-drop p)
 
-⊆-keep : ∀ {A : Set} {xs ys : List A} {x} → xs ⊆ ys → x ∷ xs ⊆ x ∷ ys
+⊆-keep : ∀ {A : Set} {xs ys : List A} {x} → xs ⊆ ys → xs `, x ⊆ ys `, x
 ⊆-keep _     here      = here
 ⊆-keep xs⊆ys (there p) = there (xs⊆ys p)
 
@@ -160,6 +162,18 @@ t ⇔ u = t `= u
 
 `∀_﹒_ : (a : Ty) → Γ `, a ⊢ ⋆ → Γ ⊢ ⋆
 `∀_﹒_ _ = `∀_
+
+`∃_ : Γ `, a ⊢ ⋆ → Γ ⊢ ⋆
+`∃_ t = ¬ (`∀ ¬ t)
+
+`∃_﹒_ : (a : Ty) → Γ `, a ⊢ ⋆ → Γ ⊢ ⋆
+`∃_﹒_ _ = `∃_
+
+`∃!_ : Γ `, a ⊢ ⋆ → Γ ⊢ ⋆
+`∃!_ t = `∃ (t ∧ `∀ (wk (⊆-keep ⊆-drop) t `⇒ v0 `= v1))
+
+⊥ : Γ ⊢ a
+⊥ = iota (¬ v0 `= v0)
 
 Form : Ctx → Set
 Form Γ = Γ ⊢ ⋆
