@@ -5,7 +5,7 @@ open import Data.List.Membership.Propositional
 open import Data.List.Relation.Binary.Subset.Propositional
 open import Data.List.Relation.Binary.Subset.Propositional.Properties
 open import Data.List.Relation.Unary.Any as Any hiding (here)
-open import Relation.Binary.PropositionalEquality hiding ([_]; subst)
+open import Relation.Binary.PropositionalEquality hiding ([_])
 
 infix   8 _⊢_
 infix   8  _⊨_
@@ -25,8 +25,11 @@ infixr 17 _`=_
 infixr 18 `λ_
 infixr 18 `λ_﹒_
 infixl 19 _·_
-infixl 20 _[_]
+infixl 20 _[_/0]
 infixl 20 _𝕡
+
+-----------------------------------
+-----------------------------------
 
 pattern here     = Any.here refl
 pattern _`,_ Γ a = a ∷ Γ
@@ -38,6 +41,9 @@ pattern _`,_ Γ a = a ∷ Γ
 ⊆-keep : ∀ {A : Set} {xs ys : List A} {x} → xs ⊆ ys → xs `, x ⊆ ys `, x
 ⊆-keep _     here      = here
 ⊆-keep xs⊆ys (there p) = there (xs⊆ys p)
+
+-----------------------------------
+-----------------------------------
 
 data Ty : Set where
   ι   : Ty -- individuals
@@ -54,6 +60,7 @@ Ctx = List Ty
 variable
   Γ Γ' Γ'' : Ctx
   Δ Δ' Δ'' : Ctx
+  Θ Θ' Θ'' : Ctx
 
 _`,,_ : (Γ Δ : Ctx) → Ctx
 Γ `,, Δ = Δ ++ Γ
@@ -65,6 +72,9 @@ data _⊢_ (Γ : Ctx) : Ty → Set where
 
   eq   : (t u : Γ ⊢ a) → Γ ⊢ ⋆
   iota : (t : Γ `, a ⊢ ⋆) → Γ ⊢ a
+
+-----------------------------------
+-----------------------------------
 
 variable
   t u v : Γ ⊢ a
@@ -102,6 +112,9 @@ _·_ = app
 _`=_ : (t u : Γ ⊢ a) → Γ ⊢ ⋆
 _`=_ = eq
 
+-----------------------------------
+-----------------------------------
+
 wk : Γ ⊆ Γ' → Γ ⊢ a → Γ' ⊢ a
 wk Γ⊆Γ' (var x)   = var (Γ⊆Γ' x)
 wk Γ⊆Γ' (lam t)   = lam (wk (⊆-keep Γ⊆Γ') t)
@@ -112,29 +125,75 @@ wk Γ⊆Γ' (iota t)  = iota (wk (⊆-keep Γ⊆Γ') t)
 _⊨_ : Ctx → Ctx → Set
 Δ ⊨ Γ = ∀ {a : Ty} → a ∈ Γ → Δ ⊢ a
 
+variable
+  σ τ : Δ ⊨ Γ
+
+wk-sub : Δ ⊆ Δ' → Δ ⊨ Γ → Δ' ⊨ Γ
+wk-sub Δ⊆Δ' σ x = wk Δ⊆Δ' (σ x)
+
 ⊨-refl : Γ ⊨ Γ
 ⊨-refl = var
 
-⊨-keep : Γ ⊨ Δ → Γ `, a ⊨ Δ `, a
-⊨-keep x here      = var here
-⊨-keep x (there p) = wk ⊆-drop (x p)
+id = ⊨-refl
 
-⊨-drop : Γ ⊢ a → Γ ⊨ Γ `, a
-⊨-drop t here      = t
-⊨-drop t (there x) = var x
+⟨_,_⟩ : Δ ⊨ Γ → Δ ⊢ a → Δ ⊨ Γ `, a
+⟨_,_⟩ σ t here      = t
+⟨_,_⟩ σ t (there p) = σ p
 
-subst : Δ ⊨ Γ → Γ ⊢ a → Δ ⊢ a
-subst σ (var x)   = σ x
-subst σ (lam t)   = lam (subst (⊨-keep σ) t)
-subst σ (app t u) = app (subst σ t) (subst σ u)
-subst σ (eq t u)  = eq (subst σ t) (subst σ u)
-subst σ (iota t)  = iota (subst (⊨-keep σ) t)
+⊨-drop : Γ `, a ⊨ Γ
+⊨-drop = wk-sub ⊆-drop ⊨-refl
 
-_[_] : Γ `, a ⊢ b → Γ ⊢ a → Γ ⊢ b
-t [ u ] = subst (⊨-drop u) t
+[_] : (t : Γ ⊢ a) → Γ ⊨ Γ `, a
+[_] t = ⟨ ⊨-refl , t ⟩
+
+⊨-keep : Δ ⊨ Γ → Δ `, a ⊨ Γ `, a
+⊨-keep σ = ⟨ wk-sub ⊆-drop σ , v0 ⟩
+
+⟨_⟩ = ⊨-keep
+
+sub : Δ ⊨ Γ → Γ ⊢ a → Δ ⊢ a
+sub σ (var x)   = σ x
+sub σ (lam t)   = lam (sub (⊨-keep σ) t)
+sub σ (app t u) = app (sub σ t) (sub σ u)
+sub σ (eq t u)  = eq (sub σ t) (sub σ u)
+sub σ (iota t)  = iota (sub (⊨-keep σ) t)
+
+⊨-trans : Θ ⊨ Δ → Δ ⊨ Γ → Θ ⊨ Γ
+⊨-trans τ σ x = sub τ (σ x)
+
+_∘_ : Δ ⊨ Γ → Θ ⊨ Δ → Θ ⊨ Γ
+_∘_ σ τ = ⊨-trans τ σ
+
+_[_/0] : Γ `, a ⊢ b → Γ ⊢ a → Γ ⊢ b
+t [ u /0] = sub [ u ] t
 
 _𝕡 : Γ ⊢ a → Γ `, b ⊢ a
-_𝕡 = wk ⊆-drop
+_𝕡 = sub ⊨-drop
+
+open ≡-Reasoning
+
+⊨-keep-trans : _≡_ {A = Θ `, a ⊨ Γ `, a} (⊨-keep (⊨-trans τ σ)) (⊨-trans (⊨-keep τ) (⊨-keep σ))
+⊨-keep-trans = {!!}
+
+sub-trans : sub (⊨-trans τ σ) t ≡ sub τ (sub σ t)
+sub-trans {τ = τ} {σ = σ} {t = var x}         = refl
+sub-trans {τ = τ} {σ = σ} {t = lam {a = a} t} = begin
+    lam (sub (⊨-keep (⊨-trans τ σ)) t)
+  ≡⟨ cong (λ hole → lam (sub {!hole!} t)) (⊨-keep-trans {a = a} {τ = τ} {σ = σ}) ⟩
+    lam (sub (⊨-trans (⊨-keep τ) (⊨-keep σ)) t)
+  ≡⟨ cong lam (sub-trans {τ = ⊨-keep τ} {σ = ⊨-keep σ} {t = t}) ⟩
+    lam (sub (⊨-keep τ) (sub (⊨-keep σ) t)) ∎
+sub-trans {τ = τ} {σ = σ} {t = app t u} = begin
+    app (sub (⊨-trans τ σ) t) (sub (⊨-trans τ σ) u)
+  ≡⟨ cong (λ hole → app hole (sub (⊨-trans τ σ) u)) (sub-trans {t = t}) ⟩
+    app (sub τ (sub σ t)) (sub (⊨-trans τ σ) u)
+  ≡⟨ cong (λ hole → app (sub τ (sub σ t)) hole) (sub-trans {t = u}) ⟩
+    app (sub τ (sub σ t)) (sub τ (sub σ u)) ∎
+sub-trans {τ = τ} {σ = σ} {t = eq t u}         rewrite sub-trans {τ = τ} {σ = σ} {t = t}    | sub-trans {τ = τ} {σ = σ} {t = u}               = refl
+sub-trans {τ = τ} {σ = σ} {t = iota {a = a} t} rewrite ⊨-keep-trans {a = a} {τ = τ} {σ = σ} | sub-trans {τ = ⊨-keep τ} {σ = ⊨-keep σ} {t = t} = refl
+
+-----------------------------------
+-----------------------------------
 
 T : Γ ⊢ ⋆
 T = `λ ⋆ ﹒ v0 `= `λ ⋆ ﹒ v0
@@ -174,6 +233,9 @@ t ⇔ u = t `= u
 
 ⊥ : Γ ⊢ a
 ⊥ = iota (¬ v0 `= v0)
+
+-----------------------------------
+-----------------------------------
 
 Form : Ctx → Set
 Form Γ = Γ ⊢ ⋆
