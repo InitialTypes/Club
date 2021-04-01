@@ -66,21 +66,20 @@ variable
 
 _`,,_ = flip (_++_ {A = Ty})
 
-data Tm (Γ : Ctx) : Ty → Set where
+data Tm : Ctx → Ty → Set
+
+Form = λ Γ → Tm Γ ⋆
+
+data Tm where
   var  : (x : a ∈ Γ) → Tm Γ a
   lam  : (t : Tm (Γ `, a) b) → Tm Γ (a ⇒ b)
   app  : (t : Tm Γ (a ⇒ b)) → (u : Tm Γ a) → Tm Γ b
 
   eq   : (t u : Tm Γ a) → Tm Γ ⋆
-  iota : (t : Tm (Γ `, a) ⋆) → Tm Γ a
+  iota : (t : Form (Γ `, a)) → Tm Γ a
 
 variable
   t u v : Tm Γ a
-
-Form : Ctx → Set
-Form Γ = Tm Γ ⋆
-
-variable
   ψ ϕ φ : Form Γ
 
 `_ : (x : a ∈ Γ) → Tm Γ a
