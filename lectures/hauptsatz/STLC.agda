@@ -1,6 +1,6 @@
 module STLC where
 
-open import Function hiding (id; _∘_)
+open import Function hiding (id; _∘_; _⟨_⟩_)
 open import Data.List hiding ([_]; lookup)
 open import Data.List.Membership.Propositional
 open import Data.List.Relation.Binary.Subset.Propositional
@@ -26,6 +26,7 @@ infixr 18 `λ_﹒_ -- dito
 infixl 19 _·_
 infixl 20 _[_/0]
 infixl 20 _𝕡
+infixl 20 _∘_
 
 -----------------------------------
 -- Stdlib extras
@@ -35,8 +36,7 @@ pattern here     = Any.here refl
 pattern _`,_ Γ a = a ∷ Γ
 
 ⊆-drop : ∀ {A : Set} {xs : List A} {x} → xs ⊆ xs `, x
-⊆-drop here      = there here
-⊆-drop (there p) = there (⊆-drop p)
+⊆-drop = there
 
 ⊆-keep : ∀ {A : Set} {xs ys : List A} {x} → xs ⊆ ys → xs `, x ⊆ ys `, x
 ⊆-keep _     here      = here
@@ -52,7 +52,7 @@ data Ty : Set where
   _⇒_ : (a b : Ty) → Ty
 
 variable
-  a b c : Ty
+  a b c d : Ty
 
 ι = 𝕓
 ⋆ = Ω
@@ -159,6 +159,12 @@ Sub-drop .lookup x = var (there x) -- ≡ wk-sub ⊆-drop Sub-refl
 [_] : (t : Tm Γ a) → Sub Γ (Γ `, a)
 [_] t = ⟨ Sub-refl , t ⟩
 
+[_,_] : (t : Tm Γ a) → (u : Tm Γ b) → Sub Γ (Γ `, a `, b)
+[_,_] t u = ⟨ [ t ] , u ⟩
+
+[_,_,_] : (t : Tm Γ a) → (u : Tm Γ b) → (v : Tm Γ c) → Sub Γ (Γ `, a `, b `, c)
+[_,_,_] t u v = ⟨ [ t , u ] , v ⟩
+
 Sub-keep : Sub Δ Γ → Sub (Δ `, a) (Γ `, a)
 Sub-keep σ = ⟨ wk-sub ⊆-drop σ , v0 ⟩
 
@@ -174,21 +180,28 @@ sub σ (iota t)  = iota (sub (Sub-keep σ) t)
 Sub-trans : Sub Θ Δ → Sub Δ Γ → Sub Θ Γ
 Sub-trans τ σ .lookup x = sub τ (σ .lookup x)
 
+Sub-wk : Sub Δ Γ' → Γ ⊆ Γ' → Sub Δ Γ
+Sub-wk σ Γ⊆Γ' .lookup x = σ .lookup (wk-var Γ⊆Γ' x)
+
 _∘_ : Sub Δ Γ → Sub Θ Δ → Sub Θ Γ
 _∘_ σ τ = Sub-trans τ σ
-
-_ : Sub-trans ⟨ σ , t ⟩ Sub-drop ≡ σ
-_ = refl
 
 _[_/0] : Tm (Γ `, a) b → Tm Γ a → Tm Γ b
 t [ u /0] = sub [ u ] t
 
+_[_/1] : Tm (Γ `, a `, b) c → Tm Γ a → Tm (Γ `, b) c
+t [ u /1] = sub ⟨ [ u ] ⟩ t
+
+_[_/2] : Tm (Γ `, a `, b `, c) d → Tm Γ a → Tm (Γ `, b `, c) d
+t [ u /2] = sub ⟨ ⟨ [ u ] ⟩ ⟩ t
+
 _𝕡 : Tm Γ a → Tm (Γ `, b) a
-_𝕡 = sub Sub-drop
+_𝕡 = wk ⊆-drop
 
 postulate
   sub-refl  : ∀ (t : Tm Γ a) → sub Sub-refl t ≡ t
   sub-trans : ∀ (τ : Sub Θ Δ) (σ : Sub Δ Γ) (t : Tm Γ a) → sub τ (sub σ t) ≡ sub (Sub-trans τ σ) t
+  sub-wk    : ∀ (σ : Sub Δ Γ') (Γ⊆Γ' : Γ ⊆ Γ') (t : Tm Γ a) → sub σ (wk Γ⊆Γ' t) ≡ sub (Sub-wk σ Γ⊆Γ') t
 
 -----------------------------------
 -- Syntactic sugar/derived operations
@@ -207,31 +220,31 @@ undefined : Tm Γ a
 undefined = iota (`¬ v0 `= v0)
 
 _`∧_ : (φ ψ : Form Γ) → Form Γ
-t `∧ u = `λ ⋆ ⇒ ⋆ ⇒ ⋆ ﹒ v0 · `⊤ · `⊤ `= `λ ⋆ ⇒ ⋆ ⇒ ⋆ ﹒ v0 · t 𝕡 · u 𝕡
+φ `∧ ψ = `λ ⋆ ⇒ ⋆ ⇒ ⋆ ﹒ v0 · `⊤ · `⊤ `= `λ ⋆ ⇒ ⋆ ⇒ ⋆ ﹒ v0 · φ 𝕡 · ψ 𝕡
 
 _`∨_ : (φ ψ : Form Γ) → Form Γ
-t `∨ u = `¬ (`¬ t `∧ `¬ u)
+φ `∨ ψ = `¬ (`¬ φ `∧ `¬ ψ)
 
 _`⇒_ : (φ ψ : Form Γ) → Form Γ
-t `⇒ u = `¬ t `∨ u
+φ `⇒ ψ = `¬ φ `∨ ψ
 
 _`⇔_ : (φ ψ : Form Γ) → Form Γ
-t `⇔ u = t `= u
+φ `⇔ ψ = φ `= ψ
 
 `∀_ : (φ : Form (Γ `, a)) → Form Γ
-`∀_ t = `λ t `= `λ `⊤
+`∀_ φ = `λ φ `= `λ `⊤
 
 `∀_﹒_ : (a : Ty) → (φ : Form (Γ `, a)) → Form Γ
 `∀_﹒_ _ = `∀_
 
 `∃_ : (φ : Form (Γ `, a)) → Form Γ
-`∃_ t = `¬ `∀ `¬ t
+`∃_ φ = `¬ `∀ `¬ φ
 
 `∃_﹒_ : (a : Ty) → (φ : Form (Γ `, a)) → Form Γ
 `∃_﹒_ _ = `∃_
 
 `∃!_ : (φ : Form (Γ `, a)) → Form Γ
-`∃!_ t = `∃ (t `∧ `∀ (wk (⊆-keep ⊆-drop) t `⇒ v0 `= v1))
+`∃!_ φ = `∃ (φ `∧ `∀ (wk (⊆-keep ⊆-drop) φ `⇒ v0 `= v1))
 
 `∃!_﹒_ : (a : Ty) → (φ : Form (Γ `, a)) → Form Γ
 `∃!_﹒_ _ = `∃!_
