@@ -32,8 +32,11 @@ data _⊩_ (Φ : FormCtx Γ) : Form Γ → Set where
 
   A6 : Φ ⊩ `¬ `∃! t `⇒ iota t `= undefined
 
+-- 1. observe that from any equality t `= u we get the equality u `= u by R
+-- 2. we want t `= t and have (`λ v0) t `= t
+-- 3. thus we get t `= t from (`λ v0) t `= t by R
 eq-refl : Φ ⊩ t `= t
-eq-refl {Φ = Φ} {t = t} = R (v0 `= t 𝕡) (A4 {t = v0}) A4
+eq-refl {t = t} = R {t = (`λ v0) · t} {u = t} (v0 `= t 𝕡) (A4 {t = v0} {u = t}) (A4 {t = v0} {u = t})
 
 `⊤-true : Φ ⊩ `⊤
 `⊤-true = eq-refl
