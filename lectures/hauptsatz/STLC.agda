@@ -27,6 +27,7 @@ infixl 19 _·_
 infixl 20 _[_/0]
 infixl 20 _𝕡
 infixl 20 _∘_
+infix  20 `_
 
 -----------------------------------
 -- Stdlib extras
@@ -79,14 +80,18 @@ data Tm where
   iota : (t : Form (Γ `, a)) → Tm Γ a
 
 variable
-  t u v : Tm Γ a
-  ψ ϕ φ : Form Γ
+  t u v   : Tm Γ a
+  ψ ϕ φ χ : Form Γ
 
 `_ : (x : a ∈ Γ) → Tm Γ a
 `_ = var
 
+{-# DISPLAY var x = ` x #-}
+
 `λ_ : (t : Tm (Γ `, a) b) → Tm Γ (a ⇒ b)
 `λ_ = lam
+
+{-# DISPLAY lam t = `λ t #-}
 
 `λ_﹒_ : (a : Ty) → (t : Tm (Γ `, a) b) → Tm Γ (a ⇒ b)
 `λ_﹒_ _ = `λ_
@@ -94,8 +99,12 @@ variable
 _·_ : (t : Tm Γ (a ⇒ b)) → (u : Tm Γ a) → Tm Γ b
 _·_ = app
 
+{-# DISPLAY app t u = t · u #-}
+
 _`=_ : (t u : Tm Γ a) → Form Γ
 _`=_ = eq
+
+{-# DISPLAY eq t u = t `= u #-}
 
 -----------------------------------
 -- Short-hands
@@ -113,11 +122,18 @@ b2 = there b1
 v0 : Tm (Γ `, a) a
 v0 = var b0
 
+{-# DISPLAY var Any.here = v0 #-}
+
 v1 : Tm (Γ `, a `, b) a
 v1 = var b1
 
 v2 : Tm (Γ `, a `, b `, c) a
 v2 = var b2
+
+`id : Tm Γ (a ⇒ a)
+`id = `λ v0
+
+{-# DISPLAY lam (var Any.here) = `id #-}
 
 -----------------------------------
 -- Renaming/weakening and substitution
@@ -132,6 +148,8 @@ wk Γ⊆Γ' (lam t)   = lam (wk (⊆-keep Γ⊆Γ') t)
 wk Γ⊆Γ' (app t u) = app (wk Γ⊆Γ' t) (wk Γ⊆Γ' u)
 wk Γ⊆Γ' (eq t u)  = eq (wk Γ⊆Γ' t) (wk Γ⊆Γ' u)
 wk Γ⊆Γ' (iota t)  = iota (wk (⊆-keep Γ⊆Γ') t)
+
+{-# DISPLAY wk _ t = t #-}
 
 record Sub (Δ Γ : Ctx) : Set where
   field
@@ -210,11 +228,16 @@ postulate
 `⊤ : Form Γ
 `⊤ = `λ ⋆ ﹒ v0 `= `λ ⋆ ﹒ v0
 
+{-# DISPLAY eq (lam (var Any.here)) (lam (var Any.here)) = `⊤ #-}
+
 `⊥ : Form Γ
 `⊥ = `λ ⋆ ﹒ `⊤ `= `λ ⋆ ﹒ v0
 
 `¬_ : Form Γ → Form Γ
 `¬ t = t `= `⊥
+
+_`≠_ : (t u : Tm Γ a) → Form Γ
+t `≠ u = `¬ t `= u
 
 undefined : Tm Γ a
 undefined = iota (`¬ v0 `= v0)
