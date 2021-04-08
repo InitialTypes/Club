@@ -72,8 +72,27 @@ truth-lemma˘ p = R v0 p `⊤-true
 truth-lemma : Φ ⊢ φ `= `⊤ → Φ ⊢ φ
 truth-lemma p = truth-lemma˘ (eq-sym p)
 
+`∀E : Φ ⊢ `∀ ψ → Φ ⊢ ψ [ t /0]
+`∀E {Φ = Φ} {ψ = ψ} {t = t} p = truth-lemma h
+  where
+    h : Φ ⊢ ψ [ t /0] `= `⊤
+    h = begin⟨ `=-setoid Ω Φ ⟩
+        ψ [ t /0]
+      ≈˘⟨ A4 ⟩
+        (`λ ψ) · t
+      ≈⟨ eq-cong (v0 · t 𝕡) p ⟩
+        (`λ `⊤) · t
+      ≈⟨ A4 ⟩
+        `⊤ ∎
+
 -- inverse-truth-lemma : Φ ⊢ φ → Φ ⊢ φ `= `⊤
 -- inverse-truth-lemma p = {!!}
+--   where
+--     obs : Φ ⊢ t `= u → Φ ⊢ (t `= u) `= `⊤
+--     obs {Φ = Φ} {t = t} {u = u} p = begin⟨ `=-setoid Ω Φ ⟩
+--         t `= u
+--       ≈⟨ {!!} ⟩
+--         `⊤ ∎
 
 -- deduction-theorem : Φ `, φ ⊢ ψ → Φ ⊢ φ `⇒ ψ
 -- deduction-theorem = ?
@@ -155,19 +174,6 @@ truth-lemma p = truth-lemma˘ (eq-sym p)
 -- `⇒E p q = {!!}
 
 -- MP = `⇒E
-
-`∀E : Φ ⊢ `∀ ψ → Φ ⊢ ψ [ t /0]
-`∀E {Φ = Φ} {ψ = ψ} {t = t} p = truth-lemma h
-  where
-    h : Φ ⊢ ψ [ t /0] `= `⊤
-    h = begin⟨ `=-setoid Ω Φ ⟩
-        ψ [ t /0]
-      ≈˘⟨ A4 ⟩
-        (`λ ψ) · t
-      ≈⟨ eq-cong (v0 · t 𝕡) p ⟩
-        (`λ `⊤) · t
-      ≈⟨ A4 ⟩
-        `⊤ ∎
 
 -- LEM : Φ ⊢ φ ∨ ¬ φ
 -- LEM = {!!}
