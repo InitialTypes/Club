@@ -104,13 +104,17 @@ mutual
   Env : (Γ : Cxt) → Set
   Env = All Clos
 
-  record Clos (a : Ty) : Set where
-    inductive; constructor clos
-    field
-      {cxt} : Cxt
-      tm    : Tm cxt a
-      env   : Env cxt
-  -- TODO: add a special closure for rec here
+  -- record Clos (a : Ty) : Set where
+  --   inductive; constructor clos
+  --   field
+  --     {cxt} : Cxt
+  --     tm    : Tm cxt a
+  --     env   : Env cxt
+  -- -- TODO: add a special closure for rec here
+
+  data Clos (a : Ty) : Set where
+    clos : (t : Tm Γ a) (γ : Env Γ) → Clos a
+    rec  : (z : Tm Γ a) (s : Tm (a ∷ nat ∷ Γ) a) (γ : Env Γ) (cl : Clos nat) → Clos a
 
 variable
   γ γ' δ δ' : Env Γ
@@ -119,7 +123,7 @@ variable
 -- CBN values
 
 data Val : Ty → Set where
-  abs :  (t : Tm (a ∷ Δ) b) (δ : Env Δ) → Val (a ⇒ b)
+  abs : (t : Tm (a ∷ Δ) b) (δ : Env Δ) → Val (a ⇒ b)
   ze  : Val nat
   su  : (cl : Clos nat) → Val nat
 
@@ -159,11 +163,11 @@ mutual
 
   eval ze γ            = now ze
   eval (su t) γ        = now (su (clos t γ))
-  eval (rec z s t) γ   =
-    eval t γ >>= λ where
-      ze       → eval z γ
-      (su cl)  → eval s (clos (rec z s t) γ ∷ cl ∷ γ)
-    where open RawMonad Sequential.monad
+  eval (rec z s t) γ   = later (evalCl' (rec z s γ (clos t γ)))
+    -- eval t γ >>= λ where
+    --   ze       → eval z γ
+    --   (su cl)  → eval s (clos (rec z s t) γ ∷ cl ∷ γ)
+    -- where open RawMonad Sequential.monad
 
   -- Call-by-name application
 
@@ -179,10 +183,16 @@ mutual
   -- Evaluate closures
 
   evalCl : Clos a → DVal a i
-  evalCl (clos t γ) = eval t γ
+  evalCl (clos t γ)     = eval t γ
+  evalCl (rec z s γ cl) =
+    evalCl cl >>= λ where
+      ze        → eval z γ
+      (su cl')  → eval s (rec z s γ cl' ∷ cl' ∷ γ)
+    where open RawMonad Sequential.monad
 
   evalCl' : Clos a → Thunk (DVal a) i
-  evalCl' (clos t γ) = eval' t γ
+  evalCl' cl .force = evalCl cl
+  -- evalCl' (clos t γ) = eval' t γ
 
 -- Termination of delayed result
 
@@ -248,17 +258,23 @@ lookupG {γ = cl ∷ _} {ρ = g ∷ _} (⟪cl⟫ , ⟪γ⟫) (there x) = lookupG
         (s : Tm (a ∷ nat ∷ Γ) a)
         (⟪s⟫ : ∀{cln n clg g} → nat ∋ cln © n → a ∋ clg © g → a ∋ clos s (clg ∷ cln ∷ γ) © gs n g)
         -- (⟪s⟫ : ∀{cln n clg g} → nat ∋ cln © n → a ∋ clg © g → a ∋ apply (apply cls cln) clg ® gs n g)
-        (t : Tm Γ nat)
-        (⟪t⟫ : nat ∋ clos t γ © n)
+        -- (t : Tm Γ nat)
+        (cl : Clos nat)
+        (⟪t⟫ : nat ∋ cl © n)
         -- (⟪t⟫ : ℕ∋ d ® n)
-      → a ∋ clos (rec z s t) γ © recℕ gz gs n
-⟪rec⟫ {γ = γ} z ⟪z⟫ s ⟪s⟫ t ⟪t⟫ with eval t γ
-⟪rec⟫ {γ = γ} z ⟪z⟫ s ⟪s⟫ t (ze r)     | now ze      = ⟪z⟫
-⟪rec⟫ {γ = γ} z ⟪z⟫ s ⟪s⟫ t (su r ⟪t⟫) | now (su (clos t' δ)) = ⟪s⟫ {!⟪t⟫!} (⟪rec⟫ {γ = γ} z ⟪z⟫ s ⟪s⟫ {!!} {!⟪t⟫!})
-... | later d = laterR {!!}
+      → a ∋ rec z s γ cl © recℕ gz gs n
+⟪rec⟫ {γ = γ} z ⟪z⟫ s ⟪s⟫ cl ⟪cl⟫ with evalCl cl
+⟪rec⟫ {γ = γ} z ⟪z⟫ s ⟪s⟫ cl (ze r) | now ze = ⟪z⟫
+⟪rec⟫ {γ = γ} z ⟪z⟫ s ⟪s⟫ cl (su now ⟪cl'⟫) | now (su cl') = ⟪s⟫ ⟪cl'⟫ (⟪rec⟫ z ⟪z⟫ s ⟪s⟫ cl' ⟪cl'⟫)
+... | later x = laterR (⟪rec⟫ {γ = γ} z ⟪z⟫ s ⟪s⟫ {!x .force!} {!⟪cl⟫!})
+-- ⟪rec⟫ {γ = γ} z ⟪z⟫ s ⟪s⟫ t ⟪t⟫ with eval t γ
+-- ⟪rec⟫ {γ = γ} z ⟪z⟫ s ⟪s⟫ t (ze r)     | now ze      = ⟪z⟫
+-- ⟪rec⟫ {γ = γ} z ⟪z⟫ s ⟪s⟫ t (su r ⟪t⟫) | now (su (clos t' δ)) = ⟪s⟫ {!⟪t⟫!} (⟪rec⟫ {γ = γ} z ⟪z⟫ s ⟪s⟫ {!!} {!⟪t⟫!})
+-- ... | later d = laterR {!!}
 -- ⟪rec⟫ z ⟪z⟫ s ⟪s⟫ t (ze r) = {!⟪z⟫!}
 -- ⟪rec⟫ z ⟪z⟫ s ⟪s⟫ t (su r ⟪t⟫) = {!!}
 
+{-
 -- Fundamental theorem
 
 ⟪_⟫ : (t : Tm Γ a) → Γ ∋G γ ® ρ → a ∋ clos t γ © ⦅ t ⦆ ρ
@@ -267,7 +283,7 @@ lookupG {γ = cl ∷ _} {ρ = g ∷ _} (⟪cl⟫ , ⟪γ⟫) (there x) = lookupG
 ⟪ app t u   ⟫ ⟪γ⟫     = ⟪ t ⟫ ⟪γ⟫ (⟪ u ⟫ ⟪γ⟫)
 ⟪ ze        ⟫ ⟪γ⟫     = ze now
 ⟪ su t      ⟫ ⟪γ⟫     = su now (⟪ t ⟫ ⟪γ⟫)
-⟪ rec z s t ⟫ ⟪γ⟫     = ⟪rec⟫ z (⟪ z ⟫ ⟪γ⟫) s (λ ⟪n⟫ ⟪a⟫ → ⟪ s ⟫ ((⟪a⟫ , ⟪n⟫ , ⟪γ⟫))) t (⟪ t ⟫ ⟪γ⟫)
+⟪ rec z s t ⟫ ⟪γ⟫     = laterR (⟪rec⟫ z (⟪ z ⟫ ⟪γ⟫) s (λ ⟪n⟫ ⟪a⟫ → ⟪ s ⟫ ((⟪a⟫ , ⟪n⟫ , ⟪γ⟫))) (⟪ t ⟫ ⟪γ⟫))
 
 -- ⟪ rec z s t ⟫ ⟪γ⟫ = ⟪rec⟫ (⟪ z ⟫ ⟪γ⟫) (λ ⟪n⟫ ⟪a⟫ → ⟪ s ⟫ ((⟪a⟫ , ⟪n⟫ , ⟪γ⟫))) (⟪ t ⟫ ⟪γ⟫)
 -- ⟪ rec z s t ⟫ ⟪γ⟫ = case ⟪ t ⟫ ⟪γ⟫ of λ where
