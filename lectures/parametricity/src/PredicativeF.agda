@@ -44,26 +44,26 @@ variable
 ⟨ [] ⟩     = lzero
 ⟨ l ∷ ls ⟩ = l ⊔ ⟨ ls ⟩
 
--- Type environments  ρ : ⟪ Δ ⟫
+-- Type environments  ξ : ⟪ Δ ⟫
 
 ⟪_⟫ : (Δ : KCxt) → Set (lsuc ⟨ Δ ⟩)
 ⟪ []     ⟫ = ⊤
 ⟪ l ∷ ls ⟫ = Set l × ⟪ ls ⟫
 
--- -- Looking up in type environment ρ
+-- -- Looking up in type environment ξ
 
 -- ⟦_⟧X : (X : k ∈ Δ) → ⟪ Δ ⟫ → Set k
--- ⟦ here!   ⟧X (A , ρ) = A
--- ⟦ there X ⟧X (A , ρ) = ⟦ X ⟧X ρ
+-- ⟦ here!   ⟧X (A , ξ) = A
+-- ⟦ there X ⟧X (A , ξ) = ⟦ X ⟧X ξ
 
 -- Type interpretation
 
 ⟦_⟧ : (A : Ty Δ k) → ⟪ Δ ⟫ → Set k
 ⟦ var   ⟧ (S , _) = S
-⟦ wk A  ⟧ (_ , ρ) = ⟦ A ⟧ ρ
-⟦ A ⇒ B ⟧ ρ       = ⟦ A ⟧ ρ → ⟦ B ⟧ ρ
-⟦ ∀̇ A   ⟧ ρ       = (S : Set _) → ⟦ A ⟧ (S , ρ)
-⟦ A [ B ] ⟧ ρ     = ⟦ A ⟧ (⟦ B ⟧ ρ , ρ)
+⟦ wk A  ⟧ (_ , ξ) = ⟦ A ⟧ ξ
+⟦ A ⇒ B ⟧ ξ       = ⟦ A ⟧ ξ → ⟦ B ⟧ ξ
+⟦ ∀̇ A   ⟧ ξ       = (S : Set _) → ⟦ A ⟧ (S , ξ)
+⟦ A [ B ] ⟧ ξ     = ⟦ A ⟧ (⟦ B ⟧ ξ , ξ)
 
 -- Typing contexts
 ------------------
@@ -92,16 +92,16 @@ data _∈G_ : (A : Ty Δ k) (Γ : Cxt Δ) → Set where
 -- Environments
 
 ⟦_⟧G : (Γ : Cxt Δ) → ⟪ Δ ⟫ → Set ⟨ Γ ⟩G
-⟦ []    ⟧G ρ       = ⊤
-⟦ A ∷ Γ ⟧G ρ       = ⟦ A ⟧ ρ × ⟦ Γ ⟧G ρ
-⟦ wk Γ  ⟧G (_ , ρ) = ⟦ Γ ⟧G ρ
+⟦ []    ⟧G ξ       = ⊤
+⟦ A ∷ Γ ⟧G ξ       = ⟦ A ⟧ ξ × ⟦ Γ ⟧G ξ
+⟦ wk Γ  ⟧G (_ , ξ) = ⟦ Γ ⟧G ξ
 
 -- Looking up the value of a variable in an environment
 
-⦅_⦆x : {Γ : Cxt Δ} (x : A ∈G Γ) (ρ : ⟪ Δ ⟫) (η : ⟦ Γ ⟧G ρ) → ⟦ A ⟧ ρ
-⦅ here    ⦆x ρ (a , η) = a
-⦅ there x ⦆x ρ (a , η) = ⦅ x ⦆x ρ η
-⦅ wk x    ⦆x (_ , ρ) η = ⦅ x ⦆x ρ η
+⦅_⦆x : {Γ : Cxt Δ} (x : A ∈G Γ) (ξ : ⟪ Δ ⟫) (η : ⟦ Γ ⟧G ξ) → ⟦ A ⟧ ξ
+⦅ here    ⦆x ξ (a , η) = a
+⦅ there x ⦆x ξ (a , η) = ⦅ x ⦆x ξ η
+⦅ wk x    ⦆x (_ , ξ) η = ⦅ x ⦆x ξ η
 
 -- Terms
 --------
@@ -117,12 +117,15 @@ data Tm {Δ : KCxt} (Γ : Cxt Δ) : ∀{k} → Ty Δ k → Set where
 
 -- Standard model of terms (functions)
 
-⦅_⦆ : {Γ : Cxt Δ} (t : Tm Γ A) (ρ : ⟪ Δ ⟫) (η : ⟦ Γ ⟧G ρ) → ⟦ A ⟧ ρ
-⦅ var x    ⦆ ρ η   = ⦅ x ⦆x ρ η
-⦅ abs t    ⦆ ρ η a = ⦅ t ⦆ ρ (a , η)
-⦅ app t u  ⦆ ρ η   = ⦅ t ⦆ ρ η (⦅ u ⦆ ρ η)
-⦅ gen t    ⦆ ρ η S = ⦅ t ⦆ (S , ρ) η
-⦅ inst t B ⦆ ρ η   = ⦅ t ⦆ ρ η (⟦ B ⟧ ρ)
+⦅_⦆ : {Γ : Cxt Δ} (t : Tm Γ A) (ξ : ⟪ Δ ⟫) (η : ⟦ Γ ⟧G ξ) → ⟦ A ⟧ ξ
+⦅ var x    ⦆ ξ η   = ⦅ x ⦆x ξ η
+⦅ abs t    ⦆ ξ η a = ⦅ t ⦆ ξ (a , η)
+⦅ app t u  ⦆ ξ η   = ⦅ t ⦆ ξ η (⦅ u ⦆ ξ η)
+⦅ gen t    ⦆ ξ η S = ⦅ t ⦆ (S , ξ) η
+⦅ inst t B ⦆ ξ η   = ⦅ t ⦆ ξ η (⟦ B ⟧ ξ)
+
+-- Relational model in sets
+---------------------------
 
 -- -}
 -- -}
