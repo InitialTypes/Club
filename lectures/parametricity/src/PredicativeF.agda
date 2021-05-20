@@ -8,6 +8,8 @@ open import Data.List.Membership.Propositional using (_∈_)
 open import Data.Product using (Σ; ∃; _×_; _,_; proj₁; proj₂)
 open import Data.Unit.Polymorphic using (⊤)
 
+
+import Relation.Binary as R; open R using (REL)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 pattern here! = here refl
@@ -126,6 +128,54 @@ data Tm {Δ : KCxt} (Γ : Cxt Δ) : ∀{k} → Ty Δ k → Set where
 
 -- Relational model in sets
 ---------------------------
+
+⟪_⟫R : (Δ : KCxt) (ξ ξ' : ⟪ Δ ⟫) → Set (lsuc ⟨ Δ ⟩)
+⟪ []    ⟫R _       _         = ⊤
+⟪ k ∷ Δ ⟫R (S , ξ) (S' , ξ') = REL S S' k × ⟪ Δ ⟫R ξ ξ'
+
+-- Relational interpretation of types
+
+⟦_⟧R : (A : Ty Δ k) (ξ ξ' : ⟪ Δ ⟫) (ρ : ⟪ Δ ⟫R ξ ξ') → REL (⟦ A ⟧ ξ) (⟦ A ⟧ ξ') k
+
+⟦ var     ⟧R (S , _) (S' , _) (R , _) = R
+⟦ wk A    ⟧R (_ , ξ) (_ , ξ') (_ , ρ) = ⟦ A ⟧R ξ ξ' ρ
+
+⟦ A ⇒ B   ⟧R ξ ξ' ρ f f' = ∀ a a'
+                         → ⟦ A ⟧R ξ ξ' ρ a a'
+                         → ⟦ B ⟧R ξ ξ' ρ (f a) (f' a')
+
+⟦ ∀̇ A     ⟧R ξ ξ' ρ f f' = ∀ S S' (R : REL S S' _)
+                         → ⟦ A ⟧R (S , ξ) (S' , ξ') (R , ρ) (f S) (f' S')
+
+⟦ A [ B ] ⟧R ξ ξ' ρ =  ⟦ A ⟧R (⟦ B ⟧ ξ , ξ) (⟦ B ⟧ ξ' , ξ') (⟦ B ⟧R ξ ξ' ρ , ρ)
+
+-- Relational interpretation of contexts
+
+⟦_⟧GR : (Γ : Cxt Δ) (ξ ξ' : ⟪ Δ ⟫) (ρ : ⟪ Δ ⟫R ξ ξ') → REL (⟦ Γ ⟧G ξ) (⟦ Γ ⟧G ξ') ⟨ Γ ⟩G
+⟦ []    ⟧GR ξ ξ' ρ _ _               = ⊤
+⟦ A ∷ Γ ⟧GR ξ ξ' ρ (a , η) (a' , η') = ⟦ A ⟧R ξ ξ' ρ a a'  ×  ⟦ Γ ⟧GR ξ ξ' ρ η η'
+⟦ wk Γ  ⟧GR (_ , ξ) (_ , ξ') (_ , ρ) = ⟦ Γ ⟧GR ξ ξ' ρ
+
+
+-- Fundamental theorem of logical relations
+
+⦅_⦆xR : {Γ : Cxt Δ} (x : A ∈G Γ)
+      (ξ ξ' : ⟪ Δ ⟫) (ρ : ⟪ Δ ⟫R ξ ξ')
+      (η : ⟦ Γ ⟧G ξ) (η' : ⟦ Γ ⟧G ξ') (rs : ⟦ Γ ⟧GR ξ ξ' ρ η η')
+      → ⟦ A ⟧R ξ ξ' ρ (⦅ x ⦆x ξ η) (⦅ x ⦆x ξ' η')
+⦅ here    ⦆xR ξ ξ' ρ (a , _) (a' , _) (r , _) = r
+⦅ there x ⦆xR ξ ξ' ρ (_ , η) (_ , η') (_ , rs) = ⦅ x ⦆xR ξ ξ' ρ η η' rs
+⦅ wk x    ⦆xR (_ , ξ) (_ , ξ') (_ , ρ) η η' rs = ⦅ x ⦆xR ξ ξ' ρ η η' rs
+
+⦅_⦆R : {Γ : Cxt Δ} (t : Tm Γ A)
+      {ξ ξ' : ⟪ Δ ⟫} (ρ : ⟪ Δ ⟫R ξ ξ')
+      {η : ⟦ Γ ⟧G ξ} {η' : ⟦ Γ ⟧G ξ'} (rs : ⟦ Γ ⟧GR ξ ξ' ρ η η')
+      → ⟦ A ⟧R ξ ξ' ρ (⦅ t ⦆ ξ η) (⦅ t ⦆ ξ' η')
+⦅ var x    ⦆R ρ rs = {!!}
+⦅ abs t    ⦆R ρ rs = {!!}
+⦅ app t u  ⦆R ρ rs = {!!}
+⦅ gen t    ⦆R ρ rs = {!!}
+⦅ inst t B ⦆R ρ rs = {!!}
 
 -- -}
 -- -}
