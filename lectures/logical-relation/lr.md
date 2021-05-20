@@ -118,6 +118,16 @@ The standard model of CA-ℕ is:
     ⟦rec⟧ g f 0     = g
     ⟦rec⟧ g f (n+1) = f n (⟦rec⟧ g f n)
 
+Reduction.
+
+    K∙t∙u          ↦ t
+    S∙t∙u∙v        ↦ (t∙v)∙(u∙v)
+    rec∙u∙v∙ze     ↦ u
+    rec∙u∙v∙(su∙t) ↦ v∙t∙(rec∙u∙v∙t)
+
+    t ↦ t'  →  t∙u       ↦ t'∙u
+            &  rec∙u∙v∙t ↦ rec∙u∙v∙t'
+
 Theorem (canonicity).   If `t : nat` then `t ↦* ⌜⟦t⟧⌝`.
 
 Logical relation.
@@ -127,7 +137,7 @@ Logical relation.
     t ⟪nat⟫ 0    ⇔  t ↦* ze
     t ⟪nat⟫ n+1  ⇔  t ↦* su ∙ t' and  t' ⟪nat⟫ n
 
-    t ⟪a⇒b⟫ f    ⇔  ∀ u,g.  u ⟪a⟫ g  →  t∙u ⟪b⟫ f g
+    t ⟪a⇒b⟫ f    ⇔  ∀ u,g.  u ⟪a⟫ g  →  t∙u ⟪b⟫ (f g)
 
 Lemma (escape).   If `t ⟪nat⟫ n` then  `t ↦* ⌜n⌝`.
 
@@ -136,12 +146,15 @@ So canonicity follows from the fundamental theorem.
 Fundamental theorem.   If `t : a` then `t ⟪a⟫ ⟦t⟧`.
 Proof by induction on `t : a`.
 
+  - Case `ze : nat`.
+    Show `ze ⟪nat⟫ ⟦ze⟧`, meaning `ze ⟪nat⟫ 0`, meaning `ze ↦* ze`.
+
   - Case `K : b ⇒ a ⇒ b`.
     Assume `t ⟪b⟫ f` and `u ⟪a⟫ g` and show `K∙t∙u  ⟪b⟫  ⟦K⟧ f g`.
     Almost there: `K∙t∙u ↦ t ⟪b⟫ f = ⟦K⟧ f g`.
     We need closure of LHS under (weak head) expansion.
 
-Lemma (expansion).   If `t ↦ t' ⟪a⟫ f` then `t ⟪a⟫ f`.
+Lemma (expansion).   If `t ↦ t'` and `t' ⟪a⟫ f` then `t ⟪a⟫ f`.
 Proof by induction on `a`.
 
 
@@ -166,7 +179,7 @@ The interpreters are now relying on an environment:
     ⦅_⦆ : Tm Γ a → ⦅Γ⦆ → ⦅a⦆
     ⟦_⟧ : Tm Γ a → ⟦Γ⟧ → ⟦a⟧
 
-Lifting the logical relation to environments:  `γ ⟪Γ⟫ ρ`.
+Lifting the logical relation to environments:  `γ ⟪Γ⟫ ρ` where `γ : ⦅Γ⦆` and `ρ : ⟦Γ⟧`.
 
     ε ⟪ε⟫ ε
 
