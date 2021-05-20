@@ -12,8 +12,9 @@ Origin:
 
 - There are unary, binary, multi-ary logical relations.
 
+
 Typed combinatory logic
-=======================
+-----------------------
 
 Types.
 
