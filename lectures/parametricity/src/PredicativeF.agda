@@ -3,11 +3,14 @@
 
 open import Level renaming (zero to lzero; suc to lsuc)
 
-open import Data.List.Base                        using (List; []; _∷_; map)
+open import Data.List.Base                        using (List; []; _∷_)
 open import Data.List.Relation.Unary.Any          using (Any; here; there)
 open import Data.List.Membership.Propositional    using (_∈_)
 
-open import Data.Product                          using (_×_; _,_; proj₁; proj₂)
+open import Data.Nat.Base                         using (ℕ; zero; suc)
+open import Data.Nat.GeneralisedArithmetic        using (fold)
+
+open import Data.Product                          using (∃; _×_; _,_; proj₁; proj₂)
 open import Data.Unit.Polymorphic                 using (⊤)
 
 open import Relation.Binary                       using (REL)
@@ -177,29 +180,20 @@ data Tm {Δ : KCxt} (Γ : Cxt Δ) : ∀{k} → Ty Δ k → Set where
 ⦅ inst t B ⦆R ρ rs   = ⦅ t ⦆R ρ rs (⟦ B ⟧R ρ)
 
 
--- Application:  ⊢ t : ∀ X. X → X  is the identity
+-- Application 1:
+-- ⊢ t : ∀ X. X → X  is the identity
 
 l1 = lsuc lzero
-
-Id : Set₁
-Id = ∀ X → X → X
-
-id : Id
-id X x = x
 
 TId : Ty [] l1
 TId = ∀̇ (var ⇒ var)
 
-tid : Tm [] TId
-tid = gen (abs (var here))
-
 module Identity (S : Set) (s : S) (t : Tm [] TId) where
+
+  -- Unary parametricity is enough
 
   R : REL S S lzero
   R s₁ s₂ = s₁ ≡ s
-
-  ⦅id⦆ : ⟦ TId ⟧R _ (⦅ tid ⦆ _ _) id
-  ⦅id⦆ = ⦅ tid ⦆R _ _
 
   f : ⟦ TId ⟧ _
   f = ⦅ t ⦆ _ _
@@ -208,7 +202,31 @@ module Identity (S : Set) (s : S) (t : Tm [] TId) where
   ⦅t⦆ = ⦅ t ⦆R _ _
 
   thm : f S s ≡ s
-  thm = ⦅t⦆ R refl
+  thm = ⦅t⦆ R {a' = s} refl
+
+-- Application 2:
+-- ⊢ t : ∀ X. (X → X) → (X → X)  is a Church numeral
+
+TNat : Ty [] l1
+TNat = ∀̇ ((var ⇒ var) ⇒ (var ⇒ var))
+
+module Numeral (X : Set) (s : X → X) (z : X) (t : Tm [] TNat) where
+
+  -- Unary parametricity is enough
+
+  R : REL X X lzero
+  R x₁ x₂ = ∃ λ n → x₁ ≡ fold z s n
+
+  ⦅z⦆ : R z z
+  ⦅z⦆ = 0 , refl
+
+  ⦅s⦆ : ∀{x₁ x₂} → R x₁ x₂ → R (s x₁) (s x₂)
+  ⦅s⦆ (n , refl) = suc n , refl
+
+  thm : ∃ λ n → ⦅ t ⦆ _ _ X s z ≡ fold z s n
+  thm = ⦅ t ⦆R _ _ R {a' = s} (⦅s⦆ {x₂ = z}) {a' = z} ⦅z⦆
+
+
 
 
 -- Needs impredicativity:
