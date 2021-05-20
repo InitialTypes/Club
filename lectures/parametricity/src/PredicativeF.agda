@@ -26,10 +26,11 @@ variable
 --------
 
 data Ty : (Δ : KCxt) (k : Level) → Set where
-  var : Ty (k ∷ []) k
-  wk  : (A : Ty Δ l) → Ty (k ∷ Δ) l
-  _⇒_ : (A : Ty Δ k) (B : Ty Δ l) → Ty Δ (k ⊔ l)
-  ∀̇   : (A : Ty (k ∷ Δ) l) → Ty Δ (lsuc k ⊔ l)
+  var  : Ty (k ∷ []) k
+  wk   : (A : Ty Δ l) → Ty (k ∷ Δ) l
+  _⇒_  : (A : Ty Δ k) (B : Ty Δ l) → Ty Δ (k ⊔ l)
+  ∀̇    : (A : Ty (k ∷ Δ) l) → Ty Δ (lsuc k ⊔ l)
+  _[_] : (A : Ty (k ∷ Δ) l) (B : Ty Δ k) → Ty Δ l
 
 variable
   A A' B B' : Ty Δ k
@@ -62,6 +63,7 @@ variable
 ⟦ wk A  ⟧ (_ , ρ) = ⟦ A ⟧ ρ
 ⟦ A ⇒ B ⟧ ρ       = ⟦ A ⟧ ρ → ⟦ B ⟧ ρ
 ⟦ ∀̇ A   ⟧ ρ       = (S : Set _) → ⟦ A ⟧ (S , ρ)
+⟦ A [ B ] ⟧ ρ     = ⟦ A ⟧ (⟦ B ⟧ ρ , ρ)
 
 -- Typing contexts
 ------------------
@@ -92,7 +94,7 @@ data _∈G_ : (A : Ty Δ k) (Γ : Cxt Δ) → Set where
 ⟦_⟧G : (Γ : Cxt Δ) → ⟪ Δ ⟫ → Set ⟨ Γ ⟩G
 ⟦ []    ⟧G ρ       = ⊤
 ⟦ A ∷ Γ ⟧G ρ       = ⟦ A ⟧ ρ × ⟦ Γ ⟧G ρ
-⟦ wk Γ  ⟧G (_ , ρ) =  ⟦ Γ ⟧G ρ
+⟦ wk Γ  ⟧G (_ , ρ) = ⟦ Γ ⟧G ρ
 
 -- Looking up the value of a variable in an environment
 
@@ -107,17 +109,20 @@ data _∈G_ : (A : Ty Δ k) (Γ : Cxt Δ) → Set where
 -- need context weakening and type substitution
 
 data Tm {Δ : KCxt} (Γ : Cxt Δ) : ∀{k} → Ty Δ k → Set where
-  var  : (x : A ∈G Γ) → Tm Γ A
-  abs  : (t : Tm (A ∷ Γ) B) → Tm Γ (A ⇒ B)
-  app  : (t : Tm Γ (A ⇒ B)) (u : Tm Γ A) → Tm Γ B
-  gen  : (t : Tm (wk Γ) A) → Tm Γ (∀̇ A)
-  -- inst : (t : Tm Γ (∀̇ {k = k} A)) (B : Ty Δ k) → Tm Γ {!!}
+  var  : (x : A ∈G Γ)                          → Tm Γ A
+  abs  : (t : Tm (A ∷ Γ) B)                    → Tm Γ (A ⇒ B)
+  app  : (t : Tm Γ (A ⇒ B)) (u : Tm Γ A)       → Tm Γ B
+  gen  : (t : Tm (wk Γ) A)                     → Tm Γ (∀̇ A)
+  inst : (t : Tm Γ (∀̇ {k = k} A)) (B : Ty Δ k) → Tm Γ (A [ B ])
+
+-- Standard model of terms (functions)
 
 ⦅_⦆ : {Γ : Cxt Δ} (t : Tm Γ A) (ρ : ⟪ Δ ⟫) (η : ⟦ Γ ⟧G ρ) → ⟦ A ⟧ ρ
-⦅ var x ⦆ ρ η   = ⦅ x ⦆x ρ η
-⦅ abs t ⦆ ρ η a = ⦅ t ⦆ ρ (a , η)
-⦅ app t u ⦆ ρ η = ⦅ t ⦆ ρ η (⦅ u ⦆ ρ η)
-⦅ gen t ⦆ ρ η S = ⦅ t ⦆ (S , ρ) η
+⦅ var x    ⦆ ρ η   = ⦅ x ⦆x ρ η
+⦅ abs t    ⦆ ρ η a = ⦅ t ⦆ ρ (a , η)
+⦅ app t u  ⦆ ρ η   = ⦅ t ⦆ ρ η (⦅ u ⦆ ρ η)
+⦅ gen t    ⦆ ρ η S = ⦅ t ⦆ (S , ρ) η
+⦅ inst t B ⦆ ρ η   = ⦅ t ⦆ ρ η (⟦ B ⟧ ρ)
 
 -- -}
 -- -}
