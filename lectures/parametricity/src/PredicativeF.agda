@@ -1,3 +1,5 @@
+-- Parametricity for predicative System F
+
 open import Level renaming (zero to lzero; suc to lsuc)
 
 open import Data.Nat.Base using (ℕ; zero; suc)
@@ -140,11 +142,11 @@ data Tm {Δ : KCxt} (Γ : Cxt Δ) : ∀{k} → Ty Δ k → Set where
 ⟦ var     ⟧R (S , _) (S' , _) (R , _) = R
 ⟦ wk A    ⟧R (_ , ξ) (_ , ξ') (_ , ρ) = ⟦ A ⟧R ξ ξ' ρ
 
-⟦ A ⇒ B   ⟧R ξ ξ' ρ f f' = ∀ a a'
+⟦ A ⇒ B   ⟧R ξ ξ' ρ f f' = ∀ {a a'}
                          → ⟦ A ⟧R ξ ξ' ρ a a'
                          → ⟦ B ⟧R ξ ξ' ρ (f a) (f' a')
 
-⟦ ∀̇ A     ⟧R ξ ξ' ρ f f' = ∀ S S' (R : REL S S' _)
+⟦ ∀̇ A     ⟧R ξ ξ' ρ f f' = ∀ {S S'} (R : REL S S' _)
                          → ⟦ A ⟧R (S , ξ) (S' , ξ') (R , ρ) (f S) (f' S')
 
 ⟦ A [ B ] ⟧R ξ ξ' ρ =  ⟦ A ⟧R (⟦ B ⟧ ξ , ξ) (⟦ B ⟧ ξ' , ξ') (⟦ B ⟧R ξ ξ' ρ , ρ)
@@ -157,25 +159,32 @@ data Tm {Δ : KCxt} (Γ : Cxt Δ) : ∀{k} → Ty Δ k → Set where
 ⟦ wk Γ  ⟧GR (_ , ξ) (_ , ξ') (_ , ρ) = ⟦ Γ ⟧GR ξ ξ' ρ
 
 
--- Fundamental theorem of logical relations
+-- Fundamental theorem of logical relations for variables
 
 ⦅_⦆xR : {Γ : Cxt Δ} (x : A ∈G Γ)
-      (ξ ξ' : ⟪ Δ ⟫) (ρ : ⟪ Δ ⟫R ξ ξ')
-      (η : ⟦ Γ ⟧G ξ) (η' : ⟦ Γ ⟧G ξ') (rs : ⟦ Γ ⟧GR ξ ξ' ρ η η')
-      → ⟦ A ⟧R ξ ξ' ρ (⦅ x ⦆x ξ η) (⦅ x ⦆x ξ' η')
-⦅ here    ⦆xR ξ ξ' ρ (a , _) (a' , _) (r , _) = r
-⦅ there x ⦆xR ξ ξ' ρ (_ , η) (_ , η') (_ , rs) = ⦅ x ⦆xR ξ ξ' ρ η η' rs
-⦅ wk x    ⦆xR (_ , ξ) (_ , ξ') (_ , ρ) η η' rs = ⦅ x ⦆xR ξ ξ' ρ η η' rs
+       {ξ : ⟪ Δ ⟫  } {ξ' : ⟪ Δ ⟫   } (ρ  : ⟪ Δ ⟫R ξ ξ')
+       {η : ⟦ Γ ⟧G ξ} {η' : ⟦ Γ ⟧G ξ'} (rs : ⟦ Γ ⟧GR ξ ξ' ρ η η')
+
+     → ⟦ A ⟧R ξ ξ' ρ (⦅ x ⦆x ξ η) (⦅ x ⦆x ξ' η')
+
+⦅ here    ⦆xR ρ  (r , _)  = r
+⦅ there x ⦆xR ρ  (_ , rs) = ⦅ x ⦆xR ρ rs
+⦅ wk x    ⦆xR (_ , ρ) rs  = ⦅ x ⦆xR ρ rs
+
+-- Fundamental theorem of logical relations
 
 ⦅_⦆R : {Γ : Cxt Δ} (t : Tm Γ A)
-      {ξ ξ' : ⟪ Δ ⟫} (ρ : ⟪ Δ ⟫R ξ ξ')
+      {ξ : ⟪ Δ ⟫  } {ξ' : ⟪ Δ ⟫   } (ρ  : ⟪ Δ ⟫R ξ ξ')
       {η : ⟦ Γ ⟧G ξ} {η' : ⟦ Γ ⟧G ξ'} (rs : ⟦ Γ ⟧GR ξ ξ' ρ η η')
-      → ⟦ A ⟧R ξ ξ' ρ (⦅ t ⦆ ξ η) (⦅ t ⦆ ξ' η')
-⦅ var x    ⦆R ρ rs = {!!}
-⦅ abs t    ⦆R ρ rs = {!!}
-⦅ app t u  ⦆R ρ rs = {!!}
-⦅ gen t    ⦆R ρ rs = {!!}
-⦅ inst t B ⦆R ρ rs = {!!}
+
+    → ⟦ A ⟧R ξ ξ' ρ (⦅ t ⦆ ξ η) (⦅ t ⦆ ξ' η')
+
+⦅ var x    ⦆R ρ rs   = ⦅ x ⦆xR ρ rs
+⦅ abs t    ⦆R ρ rs r = ⦅ t ⦆R ρ (r , rs)
+⦅ app t u  ⦆R ρ rs   = ⦅ t ⦆R ρ rs (⦅ u ⦆R ρ rs)
+⦅ gen t    ⦆R ρ rs R = ⦅ t ⦆R (R , ρ) rs
+⦅ inst t B ⦆R ρ rs   = ⦅ t ⦆R ρ rs (⟦ B ⟧R _ _ ρ)
+
 
 -- -}
 -- -}
