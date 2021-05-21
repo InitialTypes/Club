@@ -5,6 +5,8 @@
 
 open import Level renaming (zero to lzero; suc to lsuc)
 
+open import Data.Empty                            using (⊥; ⊥-elim)
+
 open import Data.List.Base                        using (List; []; _∷_)
 open import Data.List.Relation.Unary.Any          using (Any; here; there)
 open import Data.List.Membership.Propositional    using (_∈_)
@@ -79,7 +81,7 @@ mutual
   data Sub : (Δ Δ' : KCxt) → Set where
     idS   : Sub Δ Δ
     wkS   : (τ : Sub Δ Δ') → Sub (k ∷ Δ) Δ'
-    extS  : (A : Ty  Δ k) (τ  : Sub Δ Δ') → Sub Δ (k ∷ Δ')
+    extS  : (A : Ty  Δ k) (τ : Sub Δ Δ') → Sub Δ (k ∷ Δ')
     -- liftS : (τ : Sub Δ Δ') → Sub (k ∷ Δ) (k ∷ Δ')
     -- compS : (τ : Sub Δ₂ Δ₃) (τ' : Sub Δ₁ Δ₂) → Sub Δ₁ Δ₃
 
@@ -91,12 +93,16 @@ variable
   S S'          : Set k
   τ τ'          : Sub Δ Δ'
 
+-- Derived type constructors
+
 Wk : Ty Δ l → Ty (k ∷ Δ) l
 Wk A = A [ wkS idS ]
 
 Var : (X : k ∈ Δ) → Ty Δ k
 Var here!     = var
 Var (there X) = Wk (Var X)
+
+-- Derived substitutions
 
 sgS : Ty Δ k → Sub Δ (k ∷ Δ)
 sgS A = extS A idS
@@ -135,8 +141,8 @@ mutual
   -- ⟦ liftS τ    ⟧S (S , ξ) = S , ⟦ τ ⟧S ξ
   -- ⟦ compS τ τ' ⟧S ξ       = ⟦ τ ⟧S (⟦ τ' ⟧S ξ)
 
--- Extensional equality on sets: setoids
-----------------------------------------
+-- Extensional equality on sets: setoids (UNUSED)
+-------------------------------------------------
 
 E⟪_⟫ : (Δ : KCxt) → Set (lsuc ⟨ Δ ⟩)
 E⟪ []     ⟫ = ⊤
@@ -152,6 +158,7 @@ module _ (open Setoid) (open IsEquivalence) where
   Π F .isEquivalence .trans          f g S = F S .Setoid.trans (f S) (g S)
 
 -- Type interpretation
+
 mutual
 
   E⟦_⟧ : (A : Ty Δ k) (ξ : E⟪ Δ ⟫) → Setoid k k
@@ -170,7 +177,7 @@ mutual
 -------------
 
 -- We need to propagate substitutions.
--- This A ↦ A' implements a kind of weak-head reduction for explicit substitutions.
+-- The relation A ↦ A' implements a kind of weak-head reduction for explicit substitutions.
 
 infix 1 _↦_
 
@@ -186,7 +193,7 @@ data _↦_ : (A A' : Ty Δ k) → Set where
   -- liftS : var [ liftS {k = k} τ ] ↦ var
   -- compS : A [ τ ] [ τ' ] ↦ A [ compS τ τ' ]
 
--- Extending weak-head reduction to standard reduction
+-- Extending weak-head reduction to standard reduction, a structured variant of full reduction.
 
 infix 1 _→s_
 
@@ -475,7 +482,12 @@ IdR : ∀ Δ (ξ : ⟪ Δ ⟫) → ⟪ Δ ⟫R ξ ξ
 IdR []      ξ       = _
 IdR (k ∷ Δ) (S , ξ) = _≡_ , IdR Δ ξ
 
+-- I do not see how to prove the identity extension lemma (IEL):
+-- It is not clear how to show that ⟦∀X.A⟧R is reflexive.
+-- This would work in homogeneous parametricity.
+
 mutual
+
   idExt : (A : Ty Δ l) {ξ : ⟪ Δ ⟫} → ∀{a} → ⟦ A ⟧R (IdR _ ξ) a a
   idExt var = refl
   idExt (A ⇒ B) r rewrite idExt⁻ A r = idExt B
@@ -496,24 +508,15 @@ mutual
   idExt⁻ (A [ τ ]) = {!!}
 
 
--- module IdentityExtension {Δ} (ξ : ⟪ Δ ⟫) where
-
---   ρ : ⟪ Δ ⟫R ξ ξ
---   ρ = {!!}
-
---   -- idExt : ⟦ A ⟧R
-
-
--- --
-
-
-
+---------------------------------------------------------------------------
 -- Theorems for free!
 ---------------------------------------------------------------------------
 
--- Application 1:
+-- Theorem 1:
 -- ⊢ t : ∀ X. X → X  is the identity
+---------------------------------------------------------------------------
 
+⊤₀ = ⊤ {ℓ = lzero}
 l1 = lsuc lzero
 
 TId : Ty [] l1
@@ -523,7 +526,7 @@ module Identity (S : Set) (s : S) (t : Tm [] TId) where
 
   -- Unary parametricity is enough
 
-  R : REL S (⊤ {ℓ = lzero}) lzero
+  R : REL S ⊤₀ lzero
   R s₁ s₂ = s₁ ≡ s
 
   f : ⟦ TId ⟧ _
@@ -539,8 +542,9 @@ module Identity (S : Set) (s : S) (t : Tm [] TId) where
 id-thm : (t : Tm [] TId) → ∀ S (s : S) → ⦅ t ⦆ _ _ S s ≡ s
 id-thm t S s = Identity.thm S s t
 
--- Application 2:
+-- Theorem 2:
 -- ⊢ t : ∀ X. (X → X) → (X → X)  is a Church numeral
+---------------------------------------------------------------------------
 
 TNat : Ty [] l1
 TNat = ∀̇ ((var ⇒ var) ⇒ (var ⇒ var))
@@ -549,8 +553,8 @@ module Numeral (X : Set) (s : X → X) (z : X) (t : Tm [] TNat) where
 
   -- Unary parametricity is enough
 
-  R : REL X (⊤ {ℓ = lzero}) lzero
-  R x₁ x₂ = ∃ λ n → x₁ ≡ fold z s n
+  R : REL X ⊤₀ lzero
+  R x _ = ∃ λ n → x ≡ fold z s n
 
   ⦅z⦆ : R z _
   ⦅z⦆ = 0 , refl
@@ -560,25 +564,62 @@ module Numeral (X : Set) (s : X → X) (z : X) (t : Tm [] TNat) where
 
   thm : ∃ λ n → ⦅ t ⦆ _ _ X s z ≡ fold z s n
   thm = ⦅ t ⦆R _ _ R ⦅s⦆ ⦅z⦆
-  -- thm = ⦅ t ⦆R _ _ R {a' = s} (⦅s⦆ {x₂ = z}) {a' = z} ⦅z⦆
 
+-- Theorem 3: Parametricity is anti-classical.
+-- ¬ (⊢ t : ∀ A B. ((A → B) → A) → A)
+---------------------------------------------------------------------------
 
--- Proof from
--- Abel, Bernardy, ICFP 2020, Section 8.1
+module Peirce where
 
--- Needs impredicativity:
+  P : Ty (lzero ∷ lzero ∷ []) lzero
+  P = let A = var; B = Wk var in
+      ((A ⇒ B) ⇒ A) ⇒ A
+
+  -- Unary parametricity is sufficient.
+  -- We instantiate A = ⊤, RA = ⊥ and B = ⊥.  RB is arbitrary.
+
+  thm : (t : Tm [] P) → ⊥
+  thm t =
+    let
+      A  = ⊤₀                -- must be inhabited
+      B  = ⊥                 -- must be empty
+      ξ  = A , B , _
+      ⦅t⦆ = ⦅ t ⦆ ξ _
+
+      RA : REL A ⊤₀ lzero
+      RA _ _ = ⊥             -- must be empty
+
+      RB : REL B ⊤₀ lzero
+      RB _ _ = ⊤             -- Does not matter
+
+      ρ = RA , RB , _
+    in
+      ⦅ t ⦆R ρ _ λ {f : A → B} _ → f _
+
+-- Theorem 4:
+-- A ≅ ∀ X. (A → X) → X
+---------------------------------------------------------------------------
+
+-- to : A → ∀ X. (A → X) → X
+-- to a = ΛX. λ(k : A → X). k a
 --
--- Application  A ≅ ∀ X. (A → X) → X
--- x : A                ⊢ ΛX k. k x : ∀ X. (A → X) → X
--- y : ∀ X. (A → X) → X ⊢ y A id : A
-
--- y ≡ ΛX k. k (y A id)
+-- from : (∀ X. (A → X) → X) → A
+-- from t = t A id
+--
+-- from (to a) = a  trivial by computation
+-- to (from t) = t  difficult direction, by parametricity
+--
+-- Let t' = to (from t).  We show
+--
+--   ⦅t'⦆ ⟦∀X. (A → X) → X⟧R ⦅t⦆
+--
+-- by parametricity on t.
 
 module Wrap
     -- Assume an arbitrary type A
     (A : Ty [] lzero)
 
-    -- Let A' = ∀ X. (A → X) → X
+    -- Let ¬¬A = (A → X) → X
     (let ¬¬A : Ty (lzero ∷ []) lzero
          ¬¬A = (Wk A ⇒ var) ⇒ var)
 
@@ -590,49 +631,43 @@ module Wrap
     (t : Tm [] A')
   where
 
-  -- Boilerplate: Propagating the instantiation
-
-  s : ((Wk A ⇒ var) ⇒ var) [ sgS A ]  →s  (A ⇒ A) ⇒ A
-  s = step arrS (arr (step arrS (arr (step compS (step idS (step idS refl)))
-                                                 (step prjS refl)))
-                     (step prjS refl))
+  -- t₀ = from t
   -- t₀ = t A id
-
+  --
   t₀ : Tm [] A
   t₀ = app (conv s (inst t A)) (abs (var here))
+    where
+    -- Boilerplate: Propagating the instantiation
+    s : ((Wk A ⇒ var) ⇒ var) [ sgS A ]  →s  (A ⇒ A) ⇒ A
+    s = step arrS (arr (step arrS (arr (step compS (step idS (step idS refl)))
+                                                   (step prjS refl)))
+                       (step prjS refl))
 
-  -- t' = ΛX λ(k : A ⇒ X). k (t A (λ(x:A).x))
-
+  -- t' = to t₀
+  -- t' = ΛX λ(k : A ⇒ X). k t₀
+  --
   t' : Tm [] A'
   t' = gen (abs (app (var here) (wk (wkTy t₀))))
 
-  ⟦A⟧ = ⟦ A ⟧ _
-
-  f = ⦅ t ⦆ _ _
-  ⦅t⦆ = ⦅ t ⦆ _ _
+  ⟦A⟧  = ⟦ A ⟧ _
+  ⦅t⦆  = ⦅ t ⦆ _ _
   ⦅t'⦆ = ⦅ t' ⦆ _ _
 
-  a₀ = ⦅ t₀ ⦆ _ _
-  ⦅t₀⦆ = ⦅ t₀ ⦆ _ _
+  -- Goal: show that ⦅t'⦆ is extensionally equal to ⦅t⦆
+  -- We are using ⟦A⟧R as extensional notion of equality on ⟦A⟧.
 
-  ⟦t₀⟧ : ⟦ A ⟧R _ ⦅t₀⦆ ⦅t₀⦆
-  ⟦t₀⟧ = ⦅ t₀ ⦆R _ _
+  thm : ⟦ A' ⟧R _ ⦅t'⦆ ⦅t⦆
+  thm {S} {S'} R {k} {k'} ⟦k⟧ = ⦅ t ⦆R _ _ R' ⟦k⟧
+    -- Goal:  k (⦅t⦆ ⟦A⟧ id)  `R`  ⦅t⦆ S' k'
+    -- ⟦k⟧ :  ⟦A⟧R a a' → R (k a) (k' a')
+    where
+    R' : REL ⟦A⟧ S' lzero
+    R' a b = R (k a) b
 
-  module _ where
 
-    -- ⟦B⟧ = E⟦B⟧ .Carrier
-
-    -- Goal: show that ⦅t'⦆ is extensionally equal to ⦅t⦆
-    thm :  ⟦ A' ⟧R _ ⦅t'⦆ ⦅t⦆
-    thm {S} {S'} R {k} {k'} ⟦k⟧ = ⦅ t ⦆R _ _ R' ⟦k⟧  --{!⦅t⦆ ⟦A⟧ id!}
-      where
-      -- Goal:  k (⦅t⦆ ⟦A⟧ id)  `R`  ⦅t⦆ S' k'
-      -- F   :  ⟦A⟧R x x' → R (k x) (k x')
-      R' : REL ⟦A⟧ S' lzero
-      R' a b = R (k a) b
-
-      -- ⟦k⟧ : ∀{a a' : ⟦A⟧} → ⟦ A ⟧R _ a a' → R (k a) (k' a')
-      -- ⟦k⟧ r = {!!}
+---------------------------------------------------------------------------
+-- TRASH
+---------------------------------------------------------------------------
 
   -- module _ (E⟦B⟧ : Setoid lzero lzero) where
 
@@ -643,6 +678,18 @@ module Wrap
 
 
 {-
+
+-- Proof from
+-- Abel, Bernardy, ICFP 2020, Section 8.1
+
+  f = ⦅ t ⦆ _ _
+
+  a₀ = ⦅ t₀ ⦆ _ _
+  ⦅t₀⦆ = ⦅ t₀ ⦆ _ _
+
+  ⟦t₀⟧ : ⟦ A ⟧R _ ⦅t₀⦆ ⦅t₀⦆
+  ⟦t₀⟧ = ⦅ t₀ ⦆R _ _
+
   module _
       -- (B : Ty [] lzero)
       -- (let ⟦B⟧ = ⟦ B ⟧ _)
