@@ -11,7 +11,7 @@ open import Data.Nat.Base                         using (ℕ; zero; suc)
 open import Data.Nat.GeneralisedArithmetic        using (fold)
 
 open import Data.Product                          using (∃; _×_; _,_; proj₁; proj₂; <_,_>; map₁; map₂)
-open import Data.Unit.Polymorphic                 using (⊤)
+open import Data.Unit.Polymorphic                 using (⊤; tt)
 
 open import Function                              using (id; _∘_)
 
@@ -80,9 +80,9 @@ infixr 6 _⇒_
 infixl 10 _[_]
 
 variable
-  A A' B B' : Ty Δ k
-  S S'      : Set k
-  τ τ'      : Sub Δ Δ'
+  A A' A'' B B' : Ty Δ k
+  S S'          : Set k
+  τ τ'          : Sub Δ Δ'
 
 Wk : Ty Δ l → Ty (k ∷ Δ) l
 Wk A = A [ wkS idS ]
@@ -148,16 +148,54 @@ data _↦_ : (A A' : Ty Δ k) → Set where
   -- liftS : var [ liftS {k = k} τ ] ↦ var
   -- compS : A [ τ ] [ τ' ] ↦ A [ compS τ τ' ]
 
+-- Extending weak-head reduction to standard reduction
+
+infix 1 _→s_
+
+data _→s_ : (A A' : Ty Δ k) → Set where
+
+  refl : A →s A
+  step : A ↦ A' → A' →s A'' → A →s A''
+
+  arr  : A →s A' → B →s B' → (A ⇒ B) →s (A' ⇒ B')
+  all  : A →s A' → ∀̇ A →s ∀̇ A'
+  expl : A →s A' → A [ τ ] →s A' [ τ ]
+
 -- Standard model of a conversion is the identity function
 
-⦅_⦆C : {A A' : Ty Δ k} (w : A ↦ A') (ξ : ⟪ Δ ⟫) → ⟦ A ⟧ ξ → ⟦ A' ⟧ ξ
-⦅ idS     ⦆C ξ = id
-⦅ compS   ⦆C ξ = id
-⦅ prjS    ⦆C ξ = id
-⦅ arrS    ⦆C ξ = id
-⦅ allS    ⦆C ξ = id
-⦅ explS w ⦆C ξ = ⦅ w ⦆C _
+mutual
 
+  ⦅_⦆W : {A A' : Ty Δ k} (w : A ↦ A') (ξ : ⟪ Δ ⟫) → ⟦ A ⟧ ξ → ⟦ A' ⟧ ξ
+  ⦅ idS     ⦆W ξ = id
+  ⦅ compS   ⦆W ξ = id
+  ⦅ prjS    ⦆W ξ = id
+  ⦅ arrS    ⦆W ξ = id
+  ⦅ allS    ⦆W ξ = id
+  ⦅ explS w ⦆W ξ = ⦅ w ⦆W _
+
+  ⦅_⦆W⁻ : {A A' : Ty Δ k} (w : A ↦ A') (ξ : ⟪ Δ ⟫) → ⟦ A' ⟧ ξ → ⟦ A ⟧ ξ
+  ⦅ idS     ⦆W⁻ ξ = id
+  ⦅ compS   ⦆W⁻ ξ = id
+  ⦅ prjS    ⦆W⁻ ξ = id
+  ⦅ arrS    ⦆W⁻ ξ = id
+  ⦅ allS    ⦆W⁻ ξ = id
+  ⦅ explS w ⦆W⁻ ξ = ⦅ w ⦆W⁻ _
+
+mutual
+
+  ⦅_⦆S : {A A' : Ty Δ k} (s : A →s A') (ξ : ⟪ Δ ⟫) → ⟦ A ⟧ ξ → ⟦ A' ⟧ ξ
+  ⦅ refl     ⦆S ξ   = id
+  ⦅ step w s ⦆S ξ   = ⦅ s ⦆S ξ ∘ ⦅ w ⦆W ξ
+  ⦅ arr s s' ⦆S ξ f = ⦅ s' ⦆S ξ ∘ f ∘ ⦅ s ⦆S⁻ ξ
+  ⦅ all s    ⦆S ξ f = ⦅ s ⦆S _ ∘ f
+  ⦅ expl s   ⦆S ξ   = ⦅ s ⦆S _
+
+  ⦅_⦆S⁻ : {A A' : Ty Δ k} (s : A →s A') (ξ : ⟪ Δ ⟫) → ⟦ A' ⟧ ξ → ⟦ A ⟧ ξ
+  ⦅ refl     ⦆S⁻ ξ   = id
+  ⦅ step w s ⦆S⁻ ξ   = ⦅ w ⦆W⁻ ξ ∘ ⦅ s ⦆S⁻ ξ
+  ⦅ arr s s' ⦆S⁻ ξ f = ⦅ s' ⦆S⁻ ξ ∘ f ∘ ⦅ s ⦆S ξ
+  ⦅ all s    ⦆S⁻ ξ f = ⦅ s ⦆S⁻ _ ∘ f
+  ⦅ expl s   ⦆S⁻ ξ   = ⦅ s ⦆S⁻ _
 
 -- Typing contexts
 ------------------
@@ -216,19 +254,19 @@ data _↦G_ : (Γ Γ' : Cxt Δ) → Set where
   there : Γ ↦G Γ'  →  A ∷ Γ    ↦G A ∷ Γ'
   explS : Γ ↦G Γ'  →  Γ [ τ ]G ↦G Γ' [ τ ]G
 
-⦅_⦆GC : {Γ Γ' : Cxt Δ} (w : Γ ↦G Γ') (ξ : ⟪ Δ ⟫) → ⟦ Γ ⟧G ξ → ⟦ Γ' ⟧G ξ
-⦅ nil     ⦆GC ξ = id
-⦅ cons    ⦆GC ξ = id
-⦅ here  w ⦆GC ξ = map₁ (⦅ w ⦆C ξ)
-⦅ there w ⦆GC ξ = map₂ (⦅ w ⦆GC ξ)
-⦅ explS w ⦆GC ξ = ⦅ w ⦆GC _
+⦅_⦆GW : {Γ Γ' : Cxt Δ} (w : Γ ↦G Γ') (ξ : ⟪ Δ ⟫) → ⟦ Γ ⟧G ξ → ⟦ Γ' ⟧G ξ
+⦅ nil     ⦆GW ξ = id
+⦅ cons    ⦆GW ξ = id
+⦅ here  w ⦆GW ξ = map₁ (⦅ w ⦆W ξ)
+⦅ there w ⦆GW ξ = map₂ (⦅ w ⦆GW ξ)
+⦅ explS w ⦆GW ξ = ⦅ w ⦆GW _
 
 -- Terms
 --------
 
 -- need context weakening and type substitution
 
-data Tm {Δ : KCxt} : ∀ (Γ : Cxt Δ) {k} → Ty Δ k → Set where
+data Tm : ∀ {Δ : KCxt} (Γ : Cxt Δ) {k} → Ty Δ k → Set where
 
   var   : (x : A ∈G Γ)                          → Tm Γ A
   abs   : (t : Tm (A ∷ Γ) B)                    → Tm Γ (A ⇒ B)
@@ -245,9 +283,10 @@ data Tm {Δ : KCxt} : ∀ (Γ : Cxt Δ) {k} → Ty Δ k → Set where
 
   inst  : (t : Tm Γ (∀̇ {k = k} A)) (B : Ty Δ k) → Tm Γ (A [ sgS B ])
 
-  conv  : (w : A ↦ A')  (t : Tm Γ A)            → Tm Γ A'
+  conv  : (s : A →s A') (t : Tm Γ A)            → Tm Γ A'
   convG : (t : Tm Γ' A) (w : Γ ↦G Γ')           → Tm Γ A
   wk    : (t : Tm Γ B)                          → Tm (A ∷ Γ) B
+  wkTy  : (t : Tm Γ A)                          → Tm (wkG {k = k} Γ) (Wk A)
 
 -- wk : Tm Γ B → Tm (A ∷ Γ) B
 -- wk t = {!!}
@@ -261,9 +300,10 @@ data Tm {Δ : KCxt} : ∀ (Γ : Cxt Δ) {k} → Ty Δ k → Set where
 ⦅ app t u   ⦆ ξ η   = ⦅ t ⦆  ξ       η (⦅ u ⦆ ξ η)
 ⦅ gen t     ⦆ ξ η S = ⦅ t ⦆  (S , ξ) η
 ⦅ inst t B  ⦆ ξ η   = ⦅ t ⦆  ξ       η (⟦ B ⟧ ξ)
-⦅ conv w t  ⦆ ξ     = ⦅ w ⦆C ξ ∘ ⦅ t ⦆ ξ
-⦅ convG t w ⦆ ξ     = ⦅ t ⦆ ξ ∘ ⦅ w ⦆GC ξ
+⦅ conv s t  ⦆ ξ     = ⦅ s ⦆S ξ ∘ ⦅ t ⦆ ξ
+⦅ convG t w ⦆ ξ     = ⦅ t ⦆ ξ ∘ ⦅ w ⦆GW ξ
 ⦅ wk t      ⦆ ξ     = ⦅ t ⦆ ξ ∘ proj₂
+⦅ wkTy t    ⦆       = ⦅ t ⦆ ∘ proj₂
 
 
 -- Relational model in sets
@@ -302,15 +342,43 @@ mutual
 
 -- Relation interpretation of conversion
 
-⦅_⦆CR : {A A' : Ty Δ k} (w : A ↦ A') {ξ ξ' : ⟪ Δ ⟫} (ρ : ⟪ Δ ⟫R ξ ξ')
-     → ∀ {a a'} → ⟦ A ⟧R ρ a a' → ⟦ A' ⟧R ρ (⦅ w ⦆C ξ a) (⦅ w ⦆C ξ' a')
-⦅ idS     ⦆CR ρ = id
-⦅ compS   ⦆CR ρ = id
-⦅ prjS    ⦆CR ρ = id
-⦅ arrS    ⦆CR ρ = id
-⦅ allS    ⦆CR ρ = id
-⦅ explS w ⦆CR ρ = ⦅ w ⦆CR _
+mutual
 
+  ⦅_⦆WR : {A A' : Ty Δ k} (w : A ↦ A') {ξ ξ' : ⟪ Δ ⟫} (ρ : ⟪ Δ ⟫R ξ ξ')
+       → ∀ {a a'} → ⟦ A ⟧R ρ a a' → ⟦ A' ⟧R ρ (⦅ w ⦆W ξ a) (⦅ w ⦆W ξ' a')
+  ⦅ idS     ⦆WR ρ = id
+  ⦅ compS   ⦆WR ρ = id
+  ⦅ prjS    ⦆WR ρ = id
+  ⦅ arrS    ⦆WR ρ = id
+  ⦅ allS    ⦆WR ρ = id
+  ⦅ explS w ⦆WR ρ = ⦅ w ⦆WR _
+
+  ⦅_⦆WR⁻ : {A A' : Ty Δ k} (w : A ↦ A') {ξ ξ' : ⟪ Δ ⟫} (ρ : ⟪ Δ ⟫R ξ ξ')
+       → ∀ {a a'} → ⟦ A' ⟧R ρ a a' → ⟦ A ⟧R ρ (⦅ w ⦆W⁻ ξ a) (⦅ w ⦆W⁻ ξ' a')
+  ⦅ idS     ⦆WR⁻ ρ = id
+  ⦅ compS   ⦆WR⁻ ρ = id
+  ⦅ prjS    ⦆WR⁻ ρ = id
+  ⦅ arrS    ⦆WR⁻ ρ = id
+  ⦅ allS    ⦆WR⁻ ρ = id
+  ⦅ explS w ⦆WR⁻ ρ = ⦅ w ⦆WR⁻ _
+
+mutual
+
+  ⦅_⦆SR : {A A' : Ty Δ k} (s : A →s A') {ξ ξ' : ⟪ Δ ⟫} (ρ : ⟪ Δ ⟫R ξ ξ')
+       → ∀ {a a'} → ⟦ A ⟧R ρ a a' → ⟦ A' ⟧R ρ (⦅ s ⦆S ξ a) (⦅ s ⦆S ξ' a')
+  ⦅ refl     ⦆SR ρ   = id
+  ⦅ step w s ⦆SR ρ   = ⦅ s ⦆SR ρ ∘ ⦅ w ⦆WR ρ
+  ⦅ arr s s' ⦆SR ρ f = ⦅ s' ⦆SR ρ ∘ f ∘ ⦅ s ⦆SR⁻ ρ
+  ⦅ all s    ⦆SR ρ f = ⦅ s ⦆SR _ ∘ f
+  ⦅ expl s   ⦆SR ρ   = ⦅ s ⦆SR _
+
+  ⦅_⦆SR⁻ : {A A' : Ty Δ k} (s : A →s A') {ξ ξ' : ⟪ Δ ⟫} (ρ : ⟪ Δ ⟫R ξ ξ')
+       → ∀ {a a'} → ⟦ A' ⟧R ρ a a' → ⟦ A ⟧R ρ (⦅ s ⦆S⁻ ξ a) (⦅ s ⦆S⁻ ξ' a')
+  ⦅ refl     ⦆SR⁻ ρ   = id
+  ⦅ step w s ⦆SR⁻ ρ   = ⦅ w ⦆WR⁻ ρ ∘ ⦅ s ⦆SR⁻ ρ
+  ⦅ arr s s' ⦆SR⁻ ρ f = ⦅ s' ⦆SR⁻ ρ ∘ f ∘ ⦅ s ⦆SR ρ
+  ⦅ all s    ⦆SR⁻ ρ f = ⦅ s ⦆SR⁻ _ ∘ f
+  ⦅ expl s   ⦆SR⁻ ρ   = ⦅ s ⦆SR⁻ _
 
 -- Relational interpretation of contexts
 
@@ -320,13 +388,13 @@ mutual
 ⟦ Γ [ τ ]G ⟧GR                     = ⟦ Γ ⟧GR ∘ ⟦ τ ⟧SR
 
 
-⦅_⦆GCR : {Γ Γ' : Cxt Δ} (w : Γ ↦G Γ') {ξ ξ' : ⟪ Δ ⟫} (ρ : ⟪ Δ ⟫R ξ ξ')
-     → ∀ {η η'} → ⟦ Γ ⟧GR ρ η η' → ⟦ Γ' ⟧GR ρ (⦅ w ⦆GC ξ η) (⦅ w ⦆GC ξ' η')
-⦅ nil     ⦆GCR ρ = id
-⦅ cons    ⦆GCR ρ = id
-⦅ here  w ⦆GCR ρ = map₁ (⦅ w ⦆CR ρ)
-⦅ there w ⦆GCR ρ = map₂ (⦅ w ⦆GCR ρ)
-⦅ explS w ⦆GCR ρ = ⦅ w ⦆GCR _
+⦅_⦆GWR : {Γ Γ' : Cxt Δ} (w : Γ ↦G Γ') {ξ ξ' : ⟪ Δ ⟫} (ρ : ⟪ Δ ⟫R ξ ξ')
+     → ∀ {η η'} → ⟦ Γ ⟧GR ρ η η' → ⟦ Γ' ⟧GR ρ (⦅ w ⦆GW ξ η) (⦅ w ⦆GW ξ' η')
+⦅ nil     ⦆GWR ρ = id
+⦅ cons    ⦆GWR ρ = id
+⦅ here  w ⦆GWR ρ = map₁ (⦅ w ⦆WR ρ)
+⦅ there w ⦆GWR ρ = map₂ (⦅ w ⦆GWR ρ)
+⦅ explS w ⦆GWR ρ = ⦅ w ⦆GWR _
 
 
 -- Fundamental theorem of logical relations for variables
@@ -354,9 +422,10 @@ mutual
 ⦅ app t u   ⦆R ρ rs   = ⦅ t ⦆R ρ       rs (⦅ u ⦆R ρ rs)
 ⦅ gen t     ⦆R ρ rs R = ⦅ t ⦆R (R , ρ) rs
 ⦅ inst t B  ⦆R ρ rs   = ⦅ t ⦆R ρ       rs (⟦ B ⟧R ρ)
-⦅ conv w t  ⦆R ρ      = ⦅ w ⦆CR ρ ∘ ⦅ t ⦆R ρ
-⦅ convG t w ⦆R ρ      = ⦅ t ⦆R ρ ∘ ⦅ w ⦆GCR ρ
+⦅ conv s t  ⦆R ρ      = ⦅ s ⦆SR ρ ∘ ⦅ t ⦆R ρ
+⦅ convG t w ⦆R ρ      = ⦅ t ⦆R ρ ∘ ⦅ w ⦆GWR ρ
 ⦅ wk t      ⦆R ρ      = ⦅ t ⦆R ρ ∘ proj₂
+⦅ wkTy t    ⦆R        = ⦅ t ⦆R ∘ proj₂
 
 
 -- Theorems for free!
@@ -414,7 +483,8 @@ module Numeral (X : Set) (s : X → X) (z : X) (t : Tm [] TNat) where
   -- thm = ⦅ t ⦆R _ _ R {a' = s} (⦅s⦆ {x₂ = z}) {a' = z} ⦅z⦆
 
 
-
+-- Proof from
+-- Abel, Bernardy, ICFP 2020, Section 8.1
 
 -- Needs impredicativity:
 --
@@ -424,21 +494,73 @@ module Numeral (X : Set) (s : X → X) (z : X) (t : Tm [] TNat) where
 
 -- y ≡ ΛX k. k (y A id)
 
-module Wrap (A : Ty [] lzero) (let A' : Ty [] l1; A' = ∀̇ ((Wk A ⇒ var) ⇒ var)) (t : Tm [] A') where
+module Wrap
+    -- Assume an arbitrary type A
+    (A : Ty [] lzero)
 
-  -- -- A' = ∀ X. (A → X) → X
-  -- A' : Ty [] l1
-  -- A' = ∀̇ ((Wk A ⇒ var) ⇒ var)
+    -- Let A' = ∀ X. (A → X) → X
+    (let A' : Ty [] l1
+         A' = ∀̇ ((Wk A ⇒ var) ⇒ var))
 
-  -- module _ (t : Tm [] A') where
+    -- Assume an arbitrary term t of type A'
+    (t : Tm [] A')
+  where
 
-  -- TODO: MISSING SOME CONVERSION RULES
-  t₁ : Tm [] A
-  t₁ = app (conv {!arrS!} (inst t A) ) {! (abs {A = A} (var here))!}
+  -- Boilerplate: Propagating the instantiation
+
+  s : ((Wk A ⇒ var) ⇒ var) [ sgS A ]  →s  (A ⇒ A) ⇒ A
+  s = step arrS (arr (step arrS (arr (step compS (step idS (step idS refl)))
+                                                 (step prjS refl)))
+                     (step prjS refl))
+  -- t₀ = t A id
+
+  t₀ : Tm [] A
+  t₀ = app (conv s (inst t A)) (abs (var here))
 
   -- t' = ΛX λ(k : A ⇒ X). k (t A (λ(x:A).x))
+
   t' : Tm [] A'
-  t' = gen (abs (app (var here) (app (wk (convG (conv {!!} {!(inst t (Wk A))!}) nil)) (abs {A = Wk A} (var here)))))
+  t' = gen (abs (app (var here) (wk (wkTy t₀))))
+
+  ⟦A⟧ = ⟦ A ⟧ _
+
+  f = ⦅ t ⦆ _ _
+  ⦅t⦆ = ⦅ t ⦆ _ _
+  ⦅t'⦆ = ⦅ t' ⦆ _ _
+
+  a₀ = ⦅ t₀ ⦆ _ _
+  ⦅t₀⦆ = ⦅ t₀ ⦆ _ _
+
+  ⟦t₀⟧ : ⟦ A ⟧R _ ⦅t₀⦆ ⦅t₀⦆
+  ⟦t₀⟧ = ⦅ t₀ ⦆R _ _
+
+  module _
+      -- (B : Ty [] lzero)
+      -- (let ⟦B⟧ = ⟦ B ⟧ _)
+      (⟦B⟧ : Set)
+      (k : ⟦A⟧ → ⟦B⟧)
+      -- Without the identity extension lemma, k needs to be a morphism
+    where
+
+    R : REL ⟦A⟧ ⟦B⟧ lzero
+    R a b = k a ≡ b
+
+    lem : ∀{a a'} → ⟦ A ⟧R _ a a' → R a (k a')
+    lem r = {!!}
+
+    -- R : REL ⟦A⟧ ⟦B⟧ lzero
+    -- R a b = ∀{a'} → ⟦ A ⟧R _ a a' → k a' ≡ b
+
+    -- lem : ∀{a a'} → ⟦ A ⟧R _ a a' → R a (k a')
+    -- lem r r' = {!!}
+
+    goal : k (⦅t⦆ ⟦A⟧ id) ≡ ⦅t⦆ ⟦B⟧ k
+    goal = ⦅ t ⦆R _ _ R {!!} -- ⟦t₀⟧
+
+  -- Goal: show that ⦅t'⦆ is extensionally equal to ⦅t⦆
+  thm : ∀ S (k : ⟦A⟧ → S) → ⦅t'⦆ S k ≡ ⦅t⦆ S k
+  -- thm : ⟦ A' ⟧R _ ⦅t'⦆ ⦅t⦆  -- ⦅ t' ⦆ _ _ ≡ ⦅ t ⦆ _ _
+  thm S k = goal S k
 
 -- More exercises:
 --
