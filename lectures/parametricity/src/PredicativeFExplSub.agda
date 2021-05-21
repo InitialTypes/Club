@@ -1,3 +1,5 @@
+{-# OPTIONS --postfix-projections #-}
+
 -- Parametricity for predicative System F
 ---------------------------------------------------------------------------
 
@@ -13,10 +15,13 @@ open import Data.Nat.GeneralisedArithmetic        using (fold)
 open import Data.Product                          using (∃; _×_; _,_; proj₁; proj₂; <_,_>; map₁; map₂)
 open import Data.Unit.Polymorphic                 using (⊤; tt)
 
-open import Function                              using (id; _∘_)
+open import Function.Base                         using (id; _∘_)
+open import Function.Equality                     using (_⇨_)
 
-open import Relation.Binary                       using (REL)
+open import Relation.Binary                       using (REL; Setoid; IsEquivalence)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+
+open Setoid using (Carrier; _≈_)
 
 pattern here! = here refl
 
@@ -127,6 +132,37 @@ mutual
   ⟦ wkS τ      ⟧S   = ⟦ τ ⟧S ∘ proj₂
   -- ⟦ liftS τ    ⟧S (S , ξ) = S , ⟦ τ ⟧S ξ
   -- ⟦ compS τ τ' ⟧S ξ       = ⟦ τ ⟧S (⟦ τ' ⟧S ξ)
+
+-- Extensional equality on sets: setoids
+----------------------------------------
+
+E⟪_⟫ : (Δ : KCxt) → Set (lsuc ⟨ Δ ⟩)
+E⟪ []     ⟫ = ⊤
+E⟪ l ∷ ls ⟫ = Setoid l l × E⟪ ls ⟫
+
+module _ (open Setoid) (open IsEquivalence) where
+
+  Π : (Setoid k k → Setoid l l) → Setoid (lsuc k ⊔ l) (lsuc k ⊔ l)
+  Π F .Carrier       = ∀ S → F S .Carrier
+  Π F ._≈_ f f'      = ∀ S → F S ._≈_ (f S) (f' S)
+  Π F .isEquivalence .IsEquivalence.refl S = F S .Setoid.refl
+  Π F .isEquivalence .sym              f S = F S .Setoid.sym (f S)
+  Π F .isEquivalence .trans          f g S = F S .Setoid.trans (f S) (g S)
+
+-- Type interpretation
+mutual
+
+  E⟦_⟧ : (A : Ty Δ k) (ξ : E⟪ Δ ⟫) → Setoid k k
+  E⟦ var     ⟧   = proj₁
+  E⟦ A ⇒ B   ⟧ ξ = E⟦ A ⟧ ξ ⇨ E⟦ B ⟧ ξ
+  E⟦ ∀̇ A     ⟧ ξ = Π λ (S : Setoid _ _) → E⟦ A ⟧ (S , ξ)
+  E⟦ A [ τ ] ⟧   = E⟦ A ⟧ ∘ E⟦ τ ⟧S
+
+  E⟦_⟧S : (τ : Sub Δ Δ') → E⟪ Δ ⟫ → E⟪ Δ' ⟫
+  E⟦ idS        ⟧S   = id
+  E⟦ extS A τ   ⟧S ξ = E⟦ A ⟧ ξ , E⟦ τ ⟧S ξ
+  E⟦ wkS τ      ⟧S   = E⟦ τ ⟧S ∘ proj₂
+
 
 -- Conversion
 -------------
@@ -499,8 +535,12 @@ module Wrap
     (A : Ty [] lzero)
 
     -- Let A' = ∀ X. (A → X) → X
+    (let ¬¬A : Ty (lzero ∷ []) lzero
+         ¬¬A = (Wk A ⇒ var) ⇒ var)
+
+    -- Let A' = ∀ X. (A → X) → X
     (let A' : Ty [] l1
-         A' = ∀̇ ((Wk A ⇒ var) ⇒ var))
+         A' = ∀̇ ¬¬A)
 
     -- Assume an arbitrary term t of type A'
     (t : Tm [] A')
@@ -534,6 +574,15 @@ module Wrap
   ⟦t₀⟧ : ⟦ A ⟧R _ ⦅t₀⦆ ⦅t₀⦆
   ⟦t₀⟧ = ⦅ t₀ ⦆R _ _
 
+  module _ (E⟦B⟧ : Setoid lzero lzero) where
+
+    ⟦B⟧ = E⟦B⟧ .Carrier
+    -- Goal: show that ⦅t'⦆ is extensionally equal to ⦅t⦆
+    thm :  E⟦ ¬¬A ⟧ (E⟦B⟧ , _) ._≈_ (⦅t'⦆ {!⟦B⟧!} {!!}) {!!}  -- ⦅t'⦆ ⦅t⦆
+    thm = {!!}
+
+
+{-
   module _
       -- (B : Ty [] lzero)
       -- (let ⟦B⟧ = ⟦ B ⟧ _)
