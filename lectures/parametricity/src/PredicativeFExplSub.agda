@@ -21,6 +21,8 @@ open import Function.Equality                     using (_⇨_)
 open import Relation.Binary                       using (REL; Setoid; IsEquivalence)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
+open import Axiom.Extensionality.Propositional    using (Extensionality)
+
 open Setoid using (Carrier; _≈_)
 
 pattern here! = here refl
@@ -464,6 +466,48 @@ mutual
 ⦅ wkTy t    ⦆R        = ⦅ t ⦆R ∘ proj₂
 
 
+-- Identity extension
+---------------------------------------------------------------------------
+
+-- Environment of Identity relations
+
+IdR : ∀ Δ (ξ : ⟪ Δ ⟫) → ⟪ Δ ⟫R ξ ξ
+IdR []      ξ       = _
+IdR (k ∷ Δ) (S , ξ) = _≡_ , IdR Δ ξ
+
+mutual
+  idExt : (A : Ty Δ l) {ξ : ⟪ Δ ⟫} → ∀{a} → ⟦ A ⟧R (IdR _ ξ) a a
+  idExt var = refl
+  idExt (A ⇒ B) r rewrite idExt⁻ A r = idExt B
+  idExt (∀̇ A) R = {!!}  -- DOES NOT SEEM TO HOLD because heterogeneous!?
+  idExt (A [ τ ]) = {!idExt A!}
+
+  idExt⁻ : (A : Ty Δ l) {ξ : ⟪ Δ ⟫} → ∀{a a'} → ⟦ A ⟧R (IdR _ ξ) a a' → a ≡ a'
+  idExt⁻ var = id
+
+  idExt⁻ (A ⇒ B) F = funExt λ a → idExt⁻ B (F (idExt A))
+    where postulate
+      funExt : Extensionality _ _
+
+  idExt⁻ (∀̇ A) F = funExt λ S → idExt⁻ A (F _≡_)
+    where postulate
+      funExt : Extensionality _ _
+
+  idExt⁻ (A [ τ ]) = {!!}
+
+
+-- module IdentityExtension {Δ} (ξ : ⟪ Δ ⟫) where
+
+--   ρ : ⟪ Δ ⟫R ξ ξ
+--   ρ = {!!}
+
+--   -- idExt : ⟦ A ⟧R
+
+
+-- --
+
+
+
 -- Theorems for free!
 ---------------------------------------------------------------------------
 
@@ -574,12 +618,28 @@ module Wrap
   ⟦t₀⟧ : ⟦ A ⟧R _ ⦅t₀⦆ ⦅t₀⦆
   ⟦t₀⟧ = ⦅ t₀ ⦆R _ _
 
-  module _ (E⟦B⟧ : Setoid lzero lzero) where
+  module _ where
 
-    ⟦B⟧ = E⟦B⟧ .Carrier
+    -- ⟦B⟧ = E⟦B⟧ .Carrier
+
     -- Goal: show that ⦅t'⦆ is extensionally equal to ⦅t⦆
-    thm :  E⟦ ¬¬A ⟧ (E⟦B⟧ , _) ._≈_ (⦅t'⦆ {!⟦B⟧!} {!!}) {!!}  -- ⦅t'⦆ ⦅t⦆
-    thm = {!!}
+    thm :  ⟦ A' ⟧R _ ⦅t'⦆ ⦅t⦆
+    thm {S} {S'} R {k} {k'} ⟦k⟧ = ⦅ t ⦆R _ _ R' ⟦k⟧  --{!⦅t⦆ ⟦A⟧ id!}
+      where
+      -- Goal:  k (⦅t⦆ ⟦A⟧ id)  `R`  ⦅t⦆ S' k'
+      -- F   :  ⟦A⟧R x x' → R (k x) (k x')
+      R' : REL ⟦A⟧ S' lzero
+      R' a b = R (k a) b
+
+      -- ⟦k⟧ : ∀{a a' : ⟦A⟧} → ⟦ A ⟧R _ a a' → R (k a) (k' a')
+      -- ⟦k⟧ r = {!!}
+
+  -- module _ (E⟦B⟧ : Setoid lzero lzero) where
+
+  --   ⟦B⟧ = E⟦B⟧ .Carrier
+  --   -- Goal: show that ⦅t'⦆ is extensionally equal to ⦅t⦆
+  --   thm :  E⟦ ¬¬A ⟧ (E⟦B⟧ , _) ._≈_ (⦅t'⦆ {!⟦B⟧!} {!!}) {!!}  -- ⦅t'⦆ ⦅t⦆
+  --   thm = {!!}
 
 
 {-
