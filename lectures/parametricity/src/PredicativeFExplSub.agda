@@ -3,8 +3,14 @@
 -- Parametricity for predicative System F
 ---------------------------------------------------------------------------
 
--- reverse         : forall a . [a] → [a]
--- reverse-natural : reverse . map f = map f . reverse
+-- Initial types club 2021-05-20.
+
+-- Motivating example:
+--
+--   reverse         : forall a . [a] → [a]
+--   reverse-natural : reverse . map f = map f . reverse
+--
+-- `reverse-natural` is provable from the type of `reverse` alone, by parametricity.
 
 -- Literature:
 
@@ -12,7 +18,7 @@
 -- Types, Abstraction and Parametric Polymorphism.
 -- IFIP Congress 1983: 513-523
 
--- Wadler, Theorems for free
+-- Phil Wadler, Theorems for free!
 
 open import Level renaming (zero to lzero; suc to lsuc)
 
@@ -364,6 +370,8 @@ data _↦G_ : (Γ Γ' : Cxt Δ) → Set where
 
 data Tm : ∀ {Δ : KCxt} (Γ : Cxt Δ) {k} → Ty Δ k → Set where
 
+  -- STLC
+
   var   : (x : A ∈G Γ)                          → Tm Γ A
   abs   : (t : Tm (A ∷ Γ) B)                    → Tm Γ (A ⇒ B)
   app   : (t : Tm Γ (A ⇒ B)) (u : Tm Γ A)       → Tm Γ B
@@ -379,8 +387,13 @@ data Tm : ∀ {Δ : KCxt} (Γ : Cxt Δ) {k} → Ty Δ k → Set where
 
   inst  : (t : Tm Γ (∀̇ {k = k} A)) (B : Ty Δ k) → Tm Γ (A [ sgS B ])
 
+  -- Conversion
+
   conv  : (s : A →s A') (t : Tm Γ A)            → Tm Γ A'
   convG : (t : Tm Γ' A) (w : Γ ↦G Γ')           → Tm Γ A
+
+  -- Weakening
+
   wk    : (t : Tm Γ B)                          → Tm (A ∷ Γ) B
   wkTy  : (t : Tm Γ A)                          → Tm (wkG {k = k} Γ) (Wk A)
 
@@ -619,9 +632,13 @@ module Numeral (X : Set) (s : X → X) (z : X) (t : Tm [] TNat) where
 
 module Peirce where
 
+  -- The Peirce formula `A,B : ★₀ ⊢ ((A → B) → A) → A : ★₀`.
+
   P : Ty (lzero ∷ lzero ∷ []) lzero
   P = let A = var; B = Wk var in
       ((A ⇒ B) ⇒ A) ⇒ A
+
+  -- There is no term `A,B : ★₀ ⊢ t : ((A → B) → A) → A : ★₀`.
 
   -- Unary parametricity is sufficient.
   -- We instantiate A = ⊤, RA = ⊥ and B = ⊥.  RB is arbitrary.
@@ -638,7 +655,7 @@ module Peirce where
       RA _ _ = ⊥             -- must be empty
 
       RB : REL B ⊤₀ lzero
-      RB _ _ = ⊤             -- Does not matter
+      RB _ _ = ⊤             -- does not matter
 
       ρ = RA , RB , _
     in
@@ -712,59 +729,6 @@ module Wrap
     R' : REL ⟦A⟧ S' lzero
     R' a b = R (k a) b
 
-
----------------------------------------------------------------------------
--- TRASH
----------------------------------------------------------------------------
-
-  -- module _ (E⟦B⟧ : Setoid lzero lzero) where
-
-  --   ⟦B⟧ = E⟦B⟧ .Carrier
-  --   -- Goal: show that ⦅t'⦆ is extensionally equal to ⦅t⦆
-  --   thm :  E⟦ ¬¬A ⟧ (E⟦B⟧ , _) ._≈_ (⦅t'⦆ {!⟦B⟧!} {!!}) {!!}  -- ⦅t'⦆ ⦅t⦆
-  --   thm = {!!}
-
-
-{-
-
--- Proof from
--- Abel, Bernardy, ICFP 2020, Section 8.1
-
-  f = ⦅ t ⦆ _ _
-
-  a₀ = ⦅ t₀ ⦆ _ _
-  ⦅t₀⦆ = ⦅ t₀ ⦆ _ _
-
-  ⟦t₀⟧ : ⟦ A ⟧R _ ⦅t₀⦆ ⦅t₀⦆
-  ⟦t₀⟧ = ⦅ t₀ ⦆R _ _
-
-  module _
-      -- (B : Ty [] lzero)
-      -- (let ⟦B⟧ = ⟦ B ⟧ _)
-      (⟦B⟧ : Set)
-      (k : ⟦A⟧ → ⟦B⟧)
-      -- Without the identity extension lemma, k needs to be a morphism
-    where
-
-    R : REL ⟦A⟧ ⟦B⟧ lzero
-    R a b = k a ≡ b
-
-    lem : ∀{a a'} → ⟦ A ⟧R _ a a' → R a (k a')
-    lem r = {!!}
-
-    -- R : REL ⟦A⟧ ⟦B⟧ lzero
-    -- R a b = ∀{a'} → ⟦ A ⟧R _ a a' → k a' ≡ b
-
-    -- lem : ∀{a a'} → ⟦ A ⟧R _ a a' → R a (k a')
-    -- lem r r' = {!!}
-
-    goal : k (⦅t⦆ ⟦A⟧ id) ≡ ⦅t⦆ ⟦B⟧ k
-    goal = ⦅ t ⦆R _ _ R {!!} -- ⟦t₀⟧
-
-  -- Goal: show that ⦅t'⦆ is extensionally equal to ⦅t⦆
-  thm : ∀ S (k : ⟦A⟧ → S) → ⦅t'⦆ S k ≡ ⦅t⦆ S k
-  -- thm : ⟦ A' ⟧R _ ⦅t'⦆ ⦅t⦆  -- ⦅ t' ⦆ _ _ ≡ ⦅ t ⦆ _ _
-  thm S k = goal S k
 
 -- More exercises:
 --
