@@ -3,6 +3,17 @@
 -- Parametricity for predicative System F
 ---------------------------------------------------------------------------
 
+-- reverse         : forall a . [a] → [a]
+-- reverse-natural : reverse . map f = map f . reverse
+
+-- Literature:
+
+-- John C. Reynolds:
+-- Types, Abstraction and Parametric Polymorphism.
+-- IFIP Congress 1983: 513-523
+
+-- Wadler, Theorems for free
+
 open import Level renaming (zero to lzero; suc to lsuc)
 
 open import Data.Empty                            using (⊥; ⊥-elim)
@@ -29,26 +40,35 @@ open Setoid using (Carrier; _≈_)
 
 pattern here! = here refl
 
+-- Predicative System F
+-- ========================================================================
+
 -- System F extends the simply typed lambda calculus by parametric
 -- polymorphism.  The new type former is `∀X.A` which binds type
 -- variable `X` in type `A`.  A polymorphic term `t : ∀X.A` can be
 -- instantiated to any type `B`, yielding `t B : A[X=B]`.
 
--- reverse         : forall a . [a] → [a]
--- reverse-natural : reverse . map f = map f . reverse
+-- Predicative F stratifies the types into a hierarchy such that
+-- instantiation is well-founded.  Each type and each type variable
+-- is assigned a level `l ∈ ℕ`, and type variables `X` can only be
+-- instantiated with a type of the same level.
+-- The level of the polymorphic type `∀X.A` is strictly greater than
+-- the level of `X`, this means non-wellfounded instantiation such as
+-- replacing `X` by `∀X.A` is forbidden.
 
--- Literature:
-
--- John C. Reynolds:
--- Types, Abstraction and Parametric Polymorphism.
--- IFIP Congress 1983: 513-523
-
--- Wadler, Theorems for free
-
-
+-- While impredicative System F can only be modelled in an impredicative
+-- meta-theory, we can model predicative F in Agda by mapping types of
+-- level `l` to elements of `Set l`, i.e., sets of size `l`.
+-- It is thus convenient to use Agda's builtin `Level`s for stratifying
+-- System F, rather than `ℕ`.  (Of course, we could also define an injection
+-- `ℕ → Level`, but since we never case on a level, this indirection is not
+-- necessary.  Plus, we may profit from the constraint solver for levels.)
 
 -- Kinding contexts
 -------------------
+
+-- As we will use nameless-syntax, a kinding context `Δ = ..., X:★ₙ, ..., Y:★ₘ, ...`
+-- is simply represented by a list of levels `..., n, ..., m, ...`.
 
 KCxt = List Level
 
@@ -71,19 +91,27 @@ variable
 
 mutual
 
+  -- Types with a explicit substitution constructor A[τ]
+
   data Ty : (Δ : KCxt) (k : Level) → Set where
     var  :                               Ty (k ∷ Δ) k
     _⇒_  : (A : Ty Δ k) (B : Ty Δ l)   → Ty Δ (k ⊔ l)
     ∀̇    : (A : Ty (k ∷ Δ) l)          → Ty Δ (lsuc k ⊔ l)
     _[_] : (A : Ty Δ l) (τ : Sub Δ' Δ) → Ty Δ' l
 
-  -- Orientation: ⟦Sub Δ Δ'⟧ = ⟦Δ⟧ → ⟦Δ'⟧
+  -- (Parallel) substitutions.
+  -- `τ : Sub Δ Δ'` provides a type `Ty Δ k` for each `k ∈ Δ'`.
+  --
+  -- The chosen forms make it easy to define singleton substitutions (`sgS`)
+  -- and lifting a substitution under a binder (`liftS`).
+  -- The empty substitution is a sequence of `wkS` on `idS`.
+  -- Composition of substitution could be defined recursively,
+  -- but we don't require it.
+
   data Sub : (Δ Δ' : KCxt) → Set where
     idS   : Sub Δ Δ
     wkS   : (τ : Sub Δ Δ') → Sub (k ∷ Δ) Δ'
     extS  : (A : Ty  Δ k) (τ : Sub Δ Δ') → Sub Δ (k ∷ Δ')
-    -- liftS : (τ : Sub Δ Δ') → Sub (k ∷ Δ) (k ∷ Δ')
-    -- compS : (τ : Sub Δ₂ Δ₃) (τ' : Sub Δ₁ Δ₂) → Sub Δ₁ Δ₃
 
 infixr 6 _⇒_
 infixl 10 _[_]
@@ -113,7 +141,7 @@ liftS τ = extS var (wkS τ)
 -- Standard model for types: sets
 ---------------------------------
 
--- The level of a context
+-- The maximum level in a kinding context.
 
 ⟨_⟩ : KCxt → Level
 ⟨ [] ⟩     = lzero
@@ -126,6 +154,7 @@ liftS τ = extS var (wkS τ)
 ⟪ l ∷ ls ⟫ = Set l × ⟪ ls ⟫
 
 -- Type interpretation
+
 mutual
 
   ⟦_⟧ : (A : Ty Δ k) (ξ : ⟪ Δ ⟫) → Set k
@@ -135,18 +164,22 @@ mutual
   ⟦ A [ τ ] ⟧   = ⟦ A ⟧ ∘ ⟦ τ ⟧S
 
   ⟦_⟧S : (τ : Sub Δ Δ') → ⟪ Δ ⟫ → ⟪ Δ' ⟫
-  ⟦ idS        ⟧S   = id
-  ⟦ extS A τ   ⟧S ξ = ⟦ A ⟧ ξ , ⟦ τ ⟧S ξ
-  ⟦ wkS τ      ⟧S   = ⟦ τ ⟧S ∘ proj₂
-  -- ⟦ liftS τ    ⟧S (S , ξ) = S , ⟦ τ ⟧S ξ
-  -- ⟦ compS τ τ' ⟧S ξ       = ⟦ τ ⟧S (⟦ τ' ⟧S ξ)
+  ⟦ idS        ⟧S = id
+  ⟦ extS A τ   ⟧S = < ⟦ A ⟧ , ⟦ τ ⟧S >
+  ⟦ wkS τ      ⟧S = ⟦ τ ⟧S ∘ proj₂
 
 -- Extensional equality on sets: setoids (UNUSED)
 -------------------------------------------------
 
+-- The following interpretation of types as setoids is naive,
+-- but luckily we do not need it in the end.
+
 E⟪_⟫ : (Δ : KCxt) → Set (lsuc ⟨ Δ ⟩)
 E⟪ []     ⟫ = ⊤
 E⟪ l ∷ ls ⟫ = Setoid l l × E⟪ ls ⟫
+
+-- Just quantifying over setoids to interpret `∀` is quite crude,
+-- we should at least quotient this by proof irrelevance for the laws...
 
 module _ (open Setoid) (open IsEquivalence) where
 
@@ -168,16 +201,16 @@ mutual
   E⟦ A [ τ ] ⟧   = E⟦ A ⟧ ∘ E⟦ τ ⟧S
 
   E⟦_⟧S : (τ : Sub Δ Δ') → E⟪ Δ ⟫ → E⟪ Δ' ⟫
-  E⟦ idS        ⟧S   = id
-  E⟦ extS A τ   ⟧S ξ = E⟦ A ⟧ ξ , E⟦ τ ⟧S ξ
-  E⟦ wkS τ      ⟧S   = E⟦ τ ⟧S ∘ proj₂
+  E⟦ idS        ⟧S = id
+  E⟦ extS A τ   ⟧S = < E⟦ A ⟧ , E⟦ τ ⟧S >
+  E⟦ wkS τ      ⟧S = E⟦ τ ⟧S ∘ proj₂
 
 
 -- Conversion
 -------------
 
--- We need to propagate substitutions.
--- The relation A ↦ A' implements a kind of weak-head reduction for explicit substitutions.
+-- We need to propagate substitutions in order to define concrete term.
+-- The relation A ↦ A' is weak-head reduction for explicit substitutions.
 
 infix 1 _↦_
 
@@ -189,9 +222,6 @@ data _↦_ : (A A' : Ty Δ k) → Set where
   allS   :  (∀̇ A) [ τ ]               ↦ ∀̇ (A [ liftS τ ])
 
   explS  :  A ↦ A' → A [ τ ] ↦ A' [ τ ]
-  -- explS : τ ↦S τ' → A [ τ ] ↦ A [ τ' ]
-  -- liftS : var [ liftS {k = k} τ ] ↦ var
-  -- compS : A [ τ ] [ τ' ] ↦ A [ compS τ τ' ]
 
 -- Extending weak-head reduction to standard reduction, a structured variant of full reduction.
 
@@ -206,7 +236,11 @@ data _→s_ : (A A' : Ty Δ k) → Set where
   all  : A →s A' → ∀̇ A →s ∀̇ A'
   expl : A →s A' → A [ τ ] →s A' [ τ ]
 
--- Standard model of a conversion is the identity function
+-- Standard model of a conversion is the identity function.
+
+-- However, we cannot easily express this, so a conversion
+-- from `A` to `A'` will simply be a pair of functions
+-- `f : ⟦A⟧ → ⟦A'⟧` and `g : ⟦A'⟧ → ⟦A⟧`.
 
 mutual
 
@@ -245,7 +279,11 @@ mutual
 -- Typing contexts
 ------------------
 
--- Δ;Γ ⊢ t : A   where Δ ⊢ A : ★ₙ and Δ ⊢ Γ
+-- Typing contexts `Γ` are essentially lists of types
+-- with free type variables in `Δ`.
+--
+-- However, for the sake of a smooth definition of context interpretation
+-- we add an explicit substitution constructor also to contexts.
 
 data Cxt : (Δ : KCxt) → Set where
   []     : Cxt Δ
@@ -255,29 +293,37 @@ data Cxt : (Δ : KCxt) → Set where
 variable
   Γ Γ' : Cxt Δ
 
+-- Weakening a context by one more type variable is then a simple abbreviation:
+
 wkG : Cxt Δ → Cxt (k ∷ Δ)
 wkG Γ  = Γ [ wkS idS ]G
+
+-- Membership of a type in a typing context.
 
 data _∈G_ : (A : Ty Δ k) (Γ : Cxt Δ) → Set where
   here  : A ∈G (A ∷ Γ)
   there : (x : A ∈G Γ) → A ∈G (B ∷ Γ)
   _[_]x : (x : A ∈G Γ) (τ : Sub Δ Δ') → (A [ τ ]) ∈G (Γ [ τ ]G)
 
--- Standard interpretation of typing context
+-- Standard interpretation of typing contexts
+---------------------------------------------------------------------------
+
+-- The level of a typing context is the maximum level of a type
+-- in that context.
 
 ⟨_⟩G : (Γ : Cxt Δ) → Level
 ⟨ []              ⟩G = lzero
 ⟨ _∷_ {k = k} A Γ ⟩G = k ⊔ ⟨ Γ ⟩G
 ⟨ Γ [ _ ]G        ⟩G = ⟨ Γ ⟩G
 
--- Environments
+-- Environments `η : ⟦Γ⟧ξ` are tuples of values of their respective type.
 
 ⟦_⟧G : (Γ : Cxt Δ) → ⟪ Δ ⟫ → Set ⟨ Γ ⟩G
 ⟦ []       ⟧G ξ = ⊤
 ⟦ A ∷ Γ    ⟧G ξ = ⟦ A ⟧ ξ × ⟦ Γ ⟧G ξ
 ⟦ Γ [ τ ]G ⟧G   = ⟦ Γ ⟧G ∘ ⟦ τ ⟧S
 
--- Looking up the value of a variable in an environment
+-- Looking up the value of a variable in an environment.
 
 ⦅_⦆x : {Γ : Cxt Δ} (x : A ∈G Γ) (ξ : ⟪ Δ ⟫) (η : ⟦ Γ ⟧G ξ) → ⟦ A ⟧ ξ
 ⦅ here     ⦆x ξ = proj₁
@@ -287,6 +333,9 @@ data _∈G_ : (A : Ty Δ k) (Γ : Cxt Δ) → Set where
 
 -- Context conversion
 ---------------------
+
+-- Propagating explicit substitutions on contexts.
+-- UNUSED, so it may not be well engineered.
 
 infix 1 _↦G_
 
@@ -308,6 +357,8 @@ data _↦G_ : (Γ Γ' : Cxt Δ) → Set where
 
 -- Terms
 --------
+
+-- Δ;Γ ⊢ t : A   where Δ ⊢ A : ★ₙ and Δ ⊢ Γ
 
 -- need context weakening and type substitution
 
@@ -332,9 +383,6 @@ data Tm : ∀ {Δ : KCxt} (Γ : Cxt Δ) {k} → Ty Δ k → Set where
   convG : (t : Tm Γ' A) (w : Γ ↦G Γ')           → Tm Γ A
   wk    : (t : Tm Γ B)                          → Tm (A ∷ Γ) B
   wkTy  : (t : Tm Γ A)                          → Tm (wkG {k = k} Γ) (Wk A)
-
--- wk : Tm Γ B → Tm (A ∷ Γ) B
--- wk t = {!!}
 
 
 -- Standard model of terms (functions)
