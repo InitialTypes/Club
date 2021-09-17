@@ -73,6 +73,9 @@
 \usepackage{bcprules}
 \usepackage{bussproofs}
 
+% Add a top-rule to inference axioms.
+\renewcommand{\infax}[2][]{\infrule[#1]{}{#2}}
+
 % Make rule labels smaller (for rules typeset with bcprules)
 \newif\ifsmallrulenames
 \smallrulenamestrue
@@ -149,7 +152,8 @@
 
 % Substitutions
 \newcommand{\subst}[2]{\textcolor{black}{\t{#1}[\s{#2}]}}
-\newcommand{\sing}[2]{\s{\v{#1}\coloneqq \t{#2}}}
+%\newcommand{\sing}[2]{\s{\v{#1}\coloneqq \t{#2}}}
+\newcommand{\sing}[2]{\s{\v{#1}\mapsto \t{#2}}}
 \newcommand{\id}[1][]{\s{\mathrm{id}}}
 \newcommand{\wk}[1][]{\s{\uparrow}}
 \newcommand{\pair}[2]{\s{\langle #1 , \t{#2} \rangle}}
@@ -195,11 +199,11 @@
 
 \author{Sandro~Stucki}
 
-\institute[GU]{%
-  University of Gothenburg~|~Chalmers, Sweden}
+\institute[Chalmers]{%
+  Chalmers~|~University of Gothenburg, Sweden}
 
 \date{\footnotesize%
-  Virtual ITC Lecture 1 ~~--~~ 5 Nov 2020\\[4mm]%
+  ITC Lecture 1 ~~--~~ 16 Sep 2021\\[4mm]%
   \url{sandro.stucki@gu.se}\hspace{5mm}\url{@stuckintheory}\\[5mm]%
   \includegraphics[height=16mm]{img/gu-logo}\hspace{10mm}%
   \includegraphics[height=12mm]{img/chalmers-logo}
@@ -303,10 +307,18 @@
   \begin{align*}
     \v{x}&[\s{\sigma}] \coloneqq \s{\sigma}(\v{x}) \\
     (\lam{x}{t})&[\s{\sigma}] \coloneqq
-      \lam{x}{\subst{t}{\sigma\{\sing{x}{\v{x}}\}}} \\
+    \lam{x}{\subst{t}{\sigma\{\sing{x}{\v{x}}\}}} &
+    \text{if } \v{x} \notin \fv(\s{\sigma}(\mathcal{V})) \\
     (\app{t}{u})&[\s{\sigma}] \coloneqq
-      \app{\subst{t}{\sigma}}{\subst{u}{\sigma}} \\
+    \app{\subst{t}{\sigma}}{\subst{u}{\sigma}}
   \end{align*}
+
+  \bigskip
+
+  \emph{NB.} The hygiene condition
+  $\v{x} \notin \fv(\s{\sigma}(\mathcal{V}))$ is necessary to avoid
+  \emph{variable capture}.  It can be avoided through systematic
+  $\alpha$-renaming (no ``shadowing'').
 \end{frame}
 
 
@@ -394,8 +406,8 @@
   {\sub{\Gamma}{\id}{\Gamma}}
 
   \infrule[Comp]
-  {\sub{\Gamma}{\sigma}{\Delta} \quad \sub{\Delta}{\rho}{E}}
-  {\sub{\Gamma}{\scomp{\rho}{\sigma}}{E}}
+  {\sub{\Gamma}{\rho}{\Delta} \quad \sub{\Delta}{\sigma}{E}}
+  {\sub{\Gamma}{\scomp{\sigma}{\rho}}{E}}
 \end{frame}
 
 
@@ -526,8 +538,8 @@
       \pair{\wk}{\sing{x}{\v{x}}}}{\Gamma \cext \bd{x}{A}}}
 
   \infrule[SEEmpty]
-  {\sub{\Gamma}{\sigma}{\cempty} \quad \sub{\Gamma}{\sigma'}{\cempty}}
-  {\seq{\Gamma}{\sigma}{\sigma'}{\cempty}}
+  {\sub{\Gamma}{\sigma}{\cempty}}
+  {\seq{\Gamma}{\sigma}{\sempty}{\cempty}}
 
   \infrule[SEComp]
   {\seq{\Gamma}{\rho}{\rho'}{\Delta} \quad
@@ -595,22 +607,26 @@
   \bigskip
   \emph{Observation:} we can express natural numbers in Peano-style.
 
-  \only<1>{%
-  \begin{align*}
-    \v{1} &= \suc(\vz)\\
-    \v{2} &= \suc(\suc(\vz))\\
-    \v{3} &= \suc(\suc(\suc(\vz)))\\
-    &\; \; \vdots
-  \end{align*}}%
-  \only<2->{%
-  \begin{align*}
-    \v{1} &= \subst{\vz}{\wk}\\
-    \v{2} &= \subst{\subst{\vz}{\wk}}{\wk}\\
-    \v{3} &= \subst{\subst{\subst{\vz}{\wk}}{\wk}}{\wk}\\
-    &\; \; \vdots
-  \end{align*}}%
+  \begin{multicols}{2}
+    \only<1-2>{%
+    \begin{align*}
+      \v{1} &= \suc(\vz)\\
+      \v{2} &= \suc(\suc(\vz))\\
+      \v{3} &= \suc(\suc(\suc(\vz)))\\
+      &\; \; \vdots
+    \end{align*}}%
+    \only<3->{%
+    \begin{align*}
+      \v{1} &= \subst{\vz}{\wk}\\
+      \v{2} &= \subst{\subst{\vz}{\wk}}{\wk}\\
+      \v{3} &= \subst{\subst{\subst{\vz}{\wk}}{\wk}}{\wk}\\
+      &\; \; \vdots
+    \end{align*}}%
+    \onslide<2->{\typicallabel{Weaken}\infax[Weaken]
+      {\sub{\Gamma \cext \bd{x}{A}}{\wk}{\Gamma}}\typicallabel{}}
+  \end{multicols}
   \vspace{-2\baselineskip}%
-  \pause\pause
+  \pause\pause\pause
   \begin{alignat*}{2}
     \mathcal{V} \quad \ni &\quad&
       \vz & \tag{Variable}\\
@@ -790,13 +806,16 @@
 \end{frame}
 
 \renewcommand{\cempty}{\top}
+\renewcommand{\cext}{\wedge}
 \renewcommand{\c}{\wedge}
 \renewcommand{\fun}[2]{#1 \supset #2}
 
-\renewcommand{\tp}[3]{#1 \Longrightarrow #3}
-\renewcommand{\sub}[3]{#1 \Longrightarrow #3}
+%\renewcommand{\tp}[3]{#1 \Longrightarrow #3}
+%\renewcommand{\sub}[3]{#1 \Longrightarrow #3}
+\renewcommand{\tp}[3]{#1 \vdash #3}
+\renewcommand{\sub}[3]{#1 \vdash #3}
 
-\begin{frame}{Combinatory IPL \hfill \fbox{$\tp{\Gamma}{t}{A}$}}
+\begin{frame}{Intuitionistic Propositional Logic \hfill \fbox{$\tp{\Gamma}{t}{A}$}}
   \begin{multicols}{2}
     \typingrules
   \end{multicols}
