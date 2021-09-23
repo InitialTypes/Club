@@ -29,8 +29,8 @@
 \addbibresource{bibliography.bib}
 
 \title{Cartesian closed categories}
-\author{Andreas Abel}
-\date{November 2020%
+\author{Andreas Abel, Fabian Ruch}
+\date{November 2020, September 2021
      }
 
 % General macros
@@ -55,19 +55,69 @@
 \begin{document}
 \maketitle
 
-Overview:
-\begin{enumerate}
-\item Categories
-\item Functors and natural transformations
-\item Products
-\item Exponentials
-\end{enumerate}
+Categories generalize the notion of functions between sets to
+\emph{morphisms between objects}.  This gives us excellent flexiblity
+for the interpretation of (functional) programming languages.
+Functions need not be identified with their set-theoretic
+interpretation (as infinite tables mapping inputs to outputs), but we
+can choose their representation, as long as we explain \emph{how} they
+map inputs to outputs, or rather, \emph{how they compose}.
+
+For instance, we could represent functions by snippets of machine code
+and applications to arguments by calls to that machine code with
+arguments passed suitably (e.g. on the stack).  Function composition
+could be a new machine code snippet that invokes the first function
+and passes its result as argument to the second.
+
+Typically for categorical semantics of programming languages, we will
+however leave the representation of functions abstract and only work
+with the laws of function application/composition.
+
+This note introduces categories and structure on and within
+categories needed to interpret simply-typed lambda-calculus.
+
+\tableofcontents
+% Overview:
+% \begin{enumerate}
+% \item Categories
+% \item Functors and natural transformations
+% \item Products
+% \item Exponentials
+% \end{enumerate}
 
 \section{Categories}
 \label{sec:cat}
 
+The concept of a \emph{category} is very versatile, generalizing sets, monoids,
+partial orders, and graphs.  It is both used to define concrete
+indexed structures with a composition operation, like the partial
+monoid of well-formed instructions of a stack machine, as well as
+organizing structures into a common picture, e.g., the category of
+Abelian groups.
+
+\begin{figure}[htbp]
+  \centering
+  \(
+  \xymatrix@R=15ex@C=20ex{
+    A \ar@(ul,dl)_{\id[A]}
+      \ar@/^/[r]^{f_1}
+      \ar@/_/[r]_{f_2}
+      \ar[dr]^{g \comp f_1}_{g \comp f_2}
+    &
+    B \ar@(ur,dr)^{\id[B]}
+      \ar[d]^g
+    \\ &
+    C \ar@(ur,dr)^{\id[C]}
+      \ar@(d,l)^h
+  }
+  \)
+  \caption{A category (quite small).}
+  \label{fig:cat}
+\end{figure}
+
 \subsection{Definition and examples}
 
+A category is a \emph{reflexive-transitive directed multigraph}:
 \begin{definition}[Category~{\parencite[Appendix~1.3]{Aczel93}}]
   \label{def:cat}
   A category $\C$ is given by the following data:
@@ -149,7 +199,24 @@ Besides organizing algebraic structures, categories can also
   Each monoid $(M,e,\cdot)$ can be presented as category $\C_M$ with a
   single object $1$ and $\Hom(1,1)=M$.  Then $\id[1] = e$ and $f \comp
   g = f \cdot g$.
+
+  See \Cref{fig:conj} for a categorical presentation of the monoid
+  $( \{ \ttrue, \tfalse \}, \ttrue, \_{\wedge}\_ )$.
 \end{example}
+
+\begin{figure}[htbp]
+  \centering
+  \(
+  \xymatrix{
+    \bullet
+      \ar@(ul,dl)_{\ttrue = \id}
+      \ar@(dr,ur)_{\tfalse = \tfalse \comp \tfalse}
+  }
+  \)
+  \caption{The conjunctive Boolean monoid.}
+  \label{fig:conj}
+\end{figure}
+
 \begin{exercise}[Partial monoid]
   \label{ex:pmon}
   Can any partial semigroup with identity be represented as category as well?  If yes,
@@ -271,7 +338,7 @@ Some operations on the object types can be lifted to categories.
 \item The product $\C \times \D$ of two categories forms again a
   category with $\Ob[\C \times \D] = \Ob[\C] \times \Ob[\D]$.
 \item The latter can be generalized to nullary, finite, and even
-  infinite products.
+  infinite products $\prod_{i:I} \C_i$.
 \item Any type can be turned into a \emph{discrete} category where the
   identities are the only morphisms.
 \end{enumerate}
@@ -319,6 +386,19 @@ It is common to drop the indices $0$ and $1$ and simply write, \eg,
 $Ff : FA \too FB$.
 Also, since there is little chance of confusion, one often writes $F :
 \C \to \D$ instead of $F : [\C,\D]$.
+
+\begin{example}[List functor]
+  In the category $\Set$ of sets and functions, $\List : \Set \to
+  \Set$ is the (endo)functor that
+  \begin{enumerate}
+  \item maps a set $A$ to the set $\List\,A$ of lists with elements in
+    $A$, and
+  \item maps a function $f : A \too B$ to the function $\List(f) :
+    \List\,A \too \List\,B$ (aka $\tmap\,f$)
+    that applies $f$ to each element, \ie,
+    $\List(f)[a_1,\dots,a_n] = [f(a_1),\dots,f(a_n)]$.
+  \end{enumerate}
+\end{example}
 \begin{example}[Forgetful functor]
   ``Forgetting'' algebraic structure gives rise to trivial functors,
   the so-called \emph{forgetful functors}, often denoted by $U$.  For
@@ -350,6 +430,12 @@ A \ar[d]^f & F A \ar[d]^{F f} \ar[r]^{\eta_A} & G A \ar[d]^{G f} \\
 B & F B \ar[r]^{\eta_B} & G B \\
 }
 \]
+\begin{exercise}[Reverse is natural]
+  Show: In $\Set$, the set-indexed family of functions
+  $\treverse_A : \List\,A \too \List\,A$ where
+  $\treverse_A[a_1,\dots,a_n] = [a_n,\dots,a_1]$ is a natural
+  transformation $\treverse : \List \todot \List$.
+\end{exercise}
 \begin{exercise}[Functor category]
   Show that functors in $[\C,\D]$ form a category with natural
   transformations as morphisms.
@@ -359,7 +445,7 @@ B & F B \ar[r]^{\eta_B} & G B \\
   $[\C,\D]$ as homsets, we arrive at the category $\Cat$ of
   categories!
 
-  For consistency reasons $\Ob[\Cat]$ needs to be a large type
+  For consistency reasons, $\Ob[\Cat]$ needs to be a large type
   containing categories $\C$ whose $\Ob[\C]$ is a small type.
 \end{definition}
 \begin{exercise}
@@ -370,7 +456,7 @@ B & F B \ar[r]^{\eta_B} & G B \\
   In $\Cat$, the functor types $[\C,\D]$ are only taken as sets, but
   they are categories themselves!  Categories whose homsets are
   categories again are called \emph{2-categories} or
-  \emph{bicategories}.  These have extra structure---we'll not dive
+  \emph{bicategories}.  These have extra structure---we won't dive
   further into this now.
 \end{remark}
 
@@ -398,13 +484,15 @@ extra structure.
 \end{definition}
 The so-called \emph{universal property} that defines the product can
 be diagrammatically displayed as follows:
-\[
+\begin{center}
+\(
 \xymatrix@C=8ex@R=16ex{
 & \ar[dl]_f C \ar@{.>}[d]^{!h} \ar[dr]^g& \\
 A & \ar[l]_{\pi_1} A \times B  \ar[r]^{\pi_2} & B \\
 }
-\]
-%%We may also say that $P$ is a product of $A$ and $B$
+\)
+\end{center}
+
 \begin{example}\bla
   \begin{enumerate}
   \item The cartesian product is the product in $\Set$, $\Setoid$,
@@ -449,11 +537,19 @@ The nullary product is called the terminal object.
   Give, if it exists, the terminal object in the categories $\Set$,
   $\Setoid$, $\Grp$, $\Rel$.
 \end{exercise}
+
+Because $\Set(1,A) \cong A$, we can represent \emph{elements} of a set $A$ by
+morphisms $1 \too A$.  This technique yields a notion of
+\emph{element} also in categories whose objects are not sets.
+
 \begin{exercise}
   What is a terminal object in a preorder?
 \end{exercise}
 \begin{exercise}
   The terminal object is unique up to isomorphism.
+\end{exercise}
+\begin{exercise}
+  Show $\Set(1,A) \cong A$.
 \end{exercise}
 \begin{exercise}[Naturality of $\bang$]
   Show that $\bang$ is a natural transformation from $\Id$ to $\K1$
@@ -477,6 +573,28 @@ The nullary product is called the terminal object.
     monoidal category}, has finite products (including the nullary
   one).
 \end{definition}
+\begin{example}[Multi-sorted first-order language]
+  A first-order language is given by a set $S$ of sorts and a signature
+  $\GS$ mapping constants $c$ to their first-order function type
+  $\GS(c) \in \List(S) \times S$.  We write $c : s_1 \times \dots
+  \times s_n \to s$ when $\GS(c) = ([s_1,\dots,s_n],s)$.
+
+  Such a first-order language can be interpreted in a cartesian
+  category $\C$ that has an object $A_s$ for each sort $s \in S$
+  and a morphism $A_c : A_{s_1} \times \dots \times A_{s_n} \too A_s$
+  for each constant $c : s_1 \times \dots \times s_n \to s$.
+\end{example}
+We can also directly take a cartesian category as the definition of a
+first-order language, although this forces arbitrary products to be
+considered sorts and arbitrary projections to be constants of the
+language.
+\begin{exercise}
+  Describe the language of integers (with ring operations) and arrays
+  of integers (with the usual operations of initialization, lookup,
+  and update) as a cartesian category.
+\end{exercise}
+
+The special case of a single-sorted language is known as Lawvere theory.
 
 \begin{definition}[Lawvere theory]
   A \emph{Lawvere theory} is a cartesian monoidal category $T$ where
@@ -514,7 +632,7 @@ be able to internalize homsets as objects.
   The uniqueness of $h$ justifies the notation $h = \tcurry(f)$ (also:
   $h = \Lambda(f)$ or $h = \lambda(f)$).
   Since $E$ is unique up to isomorphism, the notation $E = B^A$ or $E
-  = A \To B$ is justified.
+  = (A \To B)$ is justified.
 \end{definition}
 The universal property of exponentials is visualized as follows:
 \[
