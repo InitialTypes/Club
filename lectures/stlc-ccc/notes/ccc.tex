@@ -6,6 +6,7 @@
 \usepackage{amsthm}
 \usepackage[style=authoryear]{biblatex}
 \usepackage[inline]{enumitem}
+\usepackage{thmtools}
 \usepackage{xspace}
 \usepackage[all]{xy}
 
@@ -23,6 +24,9 @@
 \newtheorem{example}{Example}
 \newtheorem*{solution}{Solution}
 \newtheorem{exercise}{Exercise}
+
+\newlist{ex:opposite-category}{enumerate}{1}
+\setlist[ex:opposite-category]{label*=\arabic*.,resume}
 
 % \crefname{exercise}{exercise}{exercises}
 
@@ -170,7 +174,7 @@ structures and their structure-preserving homomorphisms.
   the $B$-composition of their images under $f$.
 
   Less abstractly, a group morphism $f : (A,0,+,-) \too (B,1,\times,{}^{-1})$
-  has to satisfy $f(0) = 1$ and $f(a+a') = f(b) \times f(b')$.
+  has to satisfy $f(0) = 1$ and $f(a+a') = f(a) \times f(a')$.
 \end{example}
 \begin{exercise}[Groups] \bla
   \begin{enumerate}
@@ -320,7 +324,8 @@ notions should respect isomorphic objects.
   Prove this!
 \end{exercise}
 \begin{exercise}[Subcategory of isomorphisms]
-  Show that the isomorphisms of a category constitute a wide subcategory.
+  Show that the isomorphisms of a category constitute a wide subcategory,
+  also called its \emph{core}.
 \end{exercise}
 \begin{exercise}
   Does the concept \emph{subcategory} (\Cref{def:subcat}) honor the
@@ -352,10 +357,11 @@ Some operations on the object types can be lifted to categories.
   The opposite category is really just the original category with
   morphisms relabeled so that source and target are formally exchanged.
 \end{remark}
-\begin{exercise}
-  Show that $\op\C$ is indeed a category.
-
-  Show that $\op{(\op\C)} = \C$.
+\begin{exercise}\label{ex:opposite-category}\leavevmode
+  \begin{ex:opposite-category}
+  \item Show that $\op\C$ is indeed a category.
+  \item Show that $\op{(\op\C)} = \C$.
+  \end{ex:opposite-category}
 \end{exercise}
 
 \section{Functors and Natural Transformations}
@@ -409,7 +415,7 @@ Also, since there is little chance of confusion, one often writes $F :
   their ``types''.
 \end{example}
 \begin{exercise}
-  Define the duplication functor $\Dup : [\C,\C \times \C]$
+  Define the duplication, or diagonal, functor $\Dup : [\C,\C \times \C]$
   from a category to its square.
 \end{exercise}
 
@@ -451,6 +457,11 @@ B & F B \ar[r]^{\eta_B} & G B \\
 \begin{exercise}
   Prove that functors are indeed closed under composition and that
   $\Cat$ is indeed a category.
+\end{exercise}
+\begin{exercise}[continues=ex:opposite-category]\leavevmode
+  \begin{ex:opposite-category}
+  \item Show that $\C \mapsto \op\C$ extends to a functor.
+  \end{ex:opposite-category}
 \end{exercise}
 \begin{remark}[2-categories]
   In $\Cat$, the functor types $[\C,\D]$ are only taken as sets, but
