@@ -1,3 +1,5 @@
+{-# OPTIONS --allow-unsolved-metas #-}
+
 -- Newman's diamond lemma: Local confluence implies confluence for any
 -- well-founded (or terminating) relation `R`.
 
