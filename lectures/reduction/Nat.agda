@@ -8,12 +8,10 @@ open import Relation.Binary
   using (Setoid)
 open import Relation.Binary.Reasoning.MultiSetoid
 open import Relation.Binary.PropositionalEquality
-  using (_≡_ ; refl)
+  using (_≡_ ; _≢_ ; refl)
 
 infix 5 _+_
-infix 4 _∼_
-infix 4 _≈_
-infix 4 _⟶_
+infix 4 _∼_ _≈_ _⟶_ _↝_ _⟶′_
 
 -- Simple arithmetic expressions
 data Exp : Set where
@@ -186,7 +184,33 @@ _ = s ◯ , z + z , z , refl , refl , z+
 _ : norm (𝟙 + 𝟘) ≡ (𝟙 , _)
 _ = refl
 
--- Q: Is _⟶_ deterministic?
+-- Note that the reduction relation induced by EvalCtx and _∼_ is not
+-- deterministic:
+
+private
+  module Scratch where
+    e₀ : Exp
+    e₀ = s (z + z) + z
+
+    _ : e₀ ⟶ s z + z
+    _ = s (◯ + z) , z + z , z , refl , refl , z+
+
+    _ : e₀ ⟶ s ((z + z) + z)
+    _ = ◯ , s (z + z) + z , s ((z + z) + z) , refl , refl , s+
+
+    _ : _≢_ {A = Exp} (s z + z) (s ((z + z) + z))
+    _ = λ ()
+
+-- A deterministic reduction relation _⟶′_ can be given by restricting
+-- the successor identity:
+
+-- Reduction steps/redexes
+data _↝_ : Exp → Exp → Set where -- type \r~
+  z+ :                 z + e    ↝ e
+  s+ : (p : IsVal e) → s e + e' ↝ s (e + e')
+
+_⟶′_ : Exp → Exp → Set
+e ⟶′ e' = ∃ λ c → ∃ λ l → ∃ λ r → e ≡ plug c l × e' ≡ plug c r × l ↝ r
 
 ----------------
 -- NbE
