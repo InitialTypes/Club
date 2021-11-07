@@ -6,7 +6,7 @@ open import Data.Product
 
 open import Relation.Binary
   using (Setoid)
-open import Relation.Binary.SetoidReasoning
+open import Relation.Binary.Reasoning.MultiSetoid
 open import Relation.Binary.PropositionalEquality
   using (_≡_ ; refl)
 
