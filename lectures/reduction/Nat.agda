@@ -99,19 +99,19 @@ Val = Σ Exp IsVal
 data Redex : Set where
 
   -- `z+ e` denotes `z + e`
-  z+ : Exp → Redex
+  z+ : (e : Exp) → Redex
 
-  -- `s+ e e'` denotes `(s e) + e'`
-  s+ : Exp → Exp → Redex
+  -- `s+ v e'` denotes `(s v) + e'`
+  s+ : (e : Exp) → (p : IsVal e) → (e' : Exp) → Redex
 
 -- Rewrite a redex to an expression
 re-write : Redex → Exp
-re-write (z+ e)    = e
-re-write (s+ e e') = s (e + e')
+re-write (z+ e)       = e
+re-write (s+ e _p e') = s (e + e')
 
 -- Evaluation Context
 data EvalCtx : Set where
-  ◯   : EvalCtx
+  ◯    : EvalCtx
   _+_  : EvalCtx → Exp → EvalCtx
   s    : EvalCtx → EvalCtx
 
@@ -121,8 +121,8 @@ data EvalCtx : Set where
 -- Substitute the hole and flip the expression back
 plug : EvalCtx → Exp → Exp
 plug ◯        e = e
-plug (c + e')  e = plug c (e + e')
-plug (s c)     e = plug c (s e)
+plug (c + e') e = plug c (e + e')
+plug (s c)    e = plug c (s e)
 
 -- OBS: `plug` flips the expression by turning it inside out
 _ : plug (s {-1-} (s {-2-} (◯ + z))) e ≡ (s {-2-} (s {-1-} e)) + z
@@ -136,11 +136,11 @@ data Done? : Set where
 -- Construct a redex for adding a value and an expression
 mkRedex : Val → Exp → Redex
 mkRedex (z   , _) e = z+ e
-mkRedex (s t , _) e = s+ t e
+mkRedex (s v , p) e = s+ v p e
 
 -- Is a value done in the given context?
 valDoneInCtx? : Val → EvalCtx → Done?
-valDoneInCtx? v       ◯      = yes v
+valDoneInCtx? v       ◯       = yes v
 valDoneInCtx? v       (c + e) = no c (mkRedex v e)
 valDoneInCtx? (t , p) (s c)   = valDoneInCtx? (s t , p) c
 
