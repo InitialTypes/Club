@@ -6,8 +6,6 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 module FreeMonoids where
 
-  import Prelude hiding ((*))
-
   -- Terms
   data Tm x where
     E     :: Tm x
@@ -48,50 +46,52 @@ module FreeMonoids where
   embNe (K' x) = K x
 
   -- Monoid operations
-  class MonoidOps t x where
+  class Monoid (t x) => MonoidOps t x where
     -- primitive
-    e   :: t x
-    (*) :: t x -> t x -> t x
     k   :: x -> t x
 
     -- derived
     cons :: x -> t x -> t x
-    cons x xs = k x * xs
+    cons x xs = k x <> xs
 
     snoc :: t x -> x -> t x
-    snoc xs x = xs * k x
+    snoc xs x = xs <> k x
 
   -- Tm supports the monoid ops.
+  instance Semigroup (Tm x) where
+    (<>) = (:*:)
+  instance Monoid (Tm x) where
+    mempty = E
   instance MonoidOps Tm x where
-    e   = E
-    (*) = (:*:)
     k   = K
 
   -- Nf supports the monoid ops.
+  instance Semigroup (Nf x) where
+    E' <> n              = n
+    n <> E'              = n
+    (Ne' n1) <> (Ne' n2) = Ne' (n1 <> n2)
+  instance Monoid (Nf x) where
+    mempty = E'
   instance MonoidOps Nf x where
-    e  = E'
-
-    E' * n              = n
-    n * E'              = n
-    (Ne' n1) * (Ne' n2) = Ne' (n1 ** n2)
-      where (**) :: Ne' x -> Ne' x -> Ne' x
-            (Ne x)       ** n = x  :**: n
-            (n1 :**: n2) ** n = n1 :**: (n2 ** n)
-
     k x = Ne' (Ne (K' x))
+  instance Semigroup (Ne' a) where
+    (Ne x)       <> n = x  :**: n
+    (n1 :**: n2) <> n = n1 :**: (n2 <> n)
 
   newtype D x = D { unD :: Nf x -> Nf x }
 
   -- D supports the monoid ops.
+  instance Semigroup (D x) where
+    D d <> D d' = D $ d . d'
+  instance Monoid (D x) where
+    mempty     = D id
   instance MonoidOps D x where
-    e          = D id
-    D d * D d' = D $ d . d'
     k x        = D $ \case { E' -> Ne' $ Ne $ K' x; Ne' n -> Ne' $ K' x :**: n } -- = cons x :: Nf x -> Nf x
 
   -- Interpretation of terms in a type that supports the monoid ops
   eval :: MonoidOps t x => Tm x -> t x
-  eval E           = e
-  eval (e1 :*: e2) = eval e1 * eval e2
+  eval E           = mempty
+  eval (e1 :*: e2) = eval e1 <> eval e2
   eval (K x)       = k x
 
   -- Normalization
