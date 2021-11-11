@@ -77,7 +77,8 @@ module FreeMonoids where
   instance Semigroup (Ne' a) where
     (Ne x)       <> n = x  :**: n
     (n1 :**: n2) <> n = n1 :**: (n2 <> n)
-
+  instance MonoidOps [] x where
+    k = pure
   newtype D x = D { unD :: Nf x -> Nf x }
 
   -- D supports the monoid ops.
@@ -98,8 +99,21 @@ module FreeMonoids where
   norm :: Tm x -> Tm x
   norm = embNf . reify . eval
     where
-      -- reify = id
+      reify :: D x -> Nf x
       reify = ($ E') . unD
+
+  fromList :: [] x -> Tm x
+  fromList = \case
+    []       -> mempty
+    (x : xs) -> k x <> fromList xs
+
+  -- | The normal form using lists produced right-associated
+  -- composition chains terminated by the monoidal unit:
+  --
+  -- >>> normViaList (K 0 :*: K 1)
+  -- (:*:) (K 0) ((:*:) (K 1) E)
+  normViaList :: Tm x -> Tm x
+  normViaList = fromList . eval
 
   -- Examples
   t1 :: Tm Int
