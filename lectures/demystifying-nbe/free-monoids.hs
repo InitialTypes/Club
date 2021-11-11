@@ -11,39 +11,47 @@ module FreeMonoids where
     E     :: Tm x
     (:*:) :: Tm x -> Tm x -> Tm x
     K     :: x -> Tm x
+    deriving (Eq, Show)
 
-  -- Normal forms
+  -- Normal forms that are either unit or (right-associated) products of parameters
   data Nf x where
     Ne' :: Ne' x -> Nf x
     E'  :: Nf x
+    deriving (Eq, Show)
 
   data Ne' x where
     Ne     :: Ne x -> Ne' x
     (:**:) :: Ne x -> Ne' x -> Ne' x
+    deriving (Eq, Show)
 
   data Ne x where
     K' :: x -> Ne x
+    deriving (Eq, Show)
 
-  deriving instance Eq x => Eq (Ne x)
-  deriving instance Eq x => Eq (Ne' x)
-  deriving instance Eq x => Eq (Nf x)
-  deriving instance Eq x => Eq (Tm x)
-  deriving instance Show x => Show (Ne x)
-  deriving instance Show x => Show (Ne' x)
-  deriving instance Show x => Show (Nf x)
-  deriving instance Show x => Show (Tm x)
+  -- Normal forms that are (right-associated) unit-terminated products of parameters
+  data Nf' x where
+    E''     :: Nf' x
+    (:***:) :: x -> Nf' x -> Nf' x
+    deriving (Eq, Show)
 
   -- Embed normal forms into terms
-  embNf :: Nf x -> Tm x
-  embNf E'      = E
-  embNf (Ne' n) = embNe' n
+  class NormalForm t x where
+    embNf :: t x -> Tm x
 
-  embNe' :: Ne' x -> Tm x
-  embNe' (Ne n)       = embNe n
-  embNe' (n1 :**: n2) = embNe n1 :*: embNe' n2
+  instance NormalForm Nf x where
+    embNf E'      = E
+    embNf (Ne' n) = embNe' n
+      where
+        embNe' :: Ne' x -> Tm x
+        embNe' (Ne n)       = embNe n
+        embNe' (n1 :**: n2) = embNe n1 :*: embNe' n2
 
-  embNe :: Ne x -> Tm x
-  embNe (K' x) = K x
+        embNe :: Ne x -> Tm x
+        embNe (K' x) = K x
+
+  instance NormalForm Nf' x where
+    embNf E''          = E
+    embNf (x :***: xs) = K x :*: embNf xs
 
   -- Monoid operations
   class Monoid (t x) => MonoidOps t x where
@@ -63,31 +71,33 @@ module FreeMonoids where
   instance Monoid (Tm x) where
     mempty = E
   instance MonoidOps Tm x where
-    k   = K
+    k = K
 
   -- Nf supports the monoid ops.
+  instance Semigroup (Ne' x) where
+    Ne x         <> n = x  :**: n
+    (n1 :**: n2) <> n = n1 :**: (n2 <> n)
   instance Semigroup (Nf x) where
-    E' <> n              = n
-    n <> E'              = n
-    (Ne' n1) <> (Ne' n2) = Ne' (n1 <> n2)
+    E'     <> n      = n
+    n      <> E'     = n
+    Ne' n1 <> Ne' n2 = Ne' $ n1 <> n2
   instance Monoid (Nf x) where
     mempty = E'
   instance MonoidOps Nf x where
-    k x = Ne' (Ne (K' x))
-  instance Semigroup (Ne' a) where
-    (Ne x)       <> n = x  :**: n
-    (n1 :**: n2) <> n = n1 :**: (n2 <> n)
-  instance MonoidOps [] x where
-    k = pure
-  newtype D x = D { unD :: Nf x -> Nf x }
+    k = Ne' . Ne . K'
 
-  -- D supports the monoid ops.
+  -- Nf -> Nf supports the monoid ops.
+  newtype D x = D { unD :: Nf x -> Nf x }
   instance Semigroup (D x) where
     D d <> D d' = D $ d . d'
   instance Monoid (D x) where
-    mempty     = D id
+    mempty = D id
   instance MonoidOps D x where
-    k x        = D $ \case { E' -> Ne' $ Ne $ K' x; Ne' n -> Ne' $ K' x :**: n } -- = cons x :: Nf x -> Nf x
+    k x = D $ \case { E' -> Ne' $ Ne $ K' x; Ne' n -> Ne' $ K' x :**: n } -- = cons x :: Nf x -> Nf x
+
+  -- [] supports the monoid ops.
+  instance MonoidOps [] x where
+    k = pure
 
   -- Interpretation of terms in a type that supports the monoid ops
   eval :: MonoidOps t x => Tm x -> t x
@@ -99,21 +109,16 @@ module FreeMonoids where
   norm :: Tm x -> Tm x
   norm = embNf . reify . eval
     where
-      reify :: D x -> Nf x
-      reify = ($ E') . unD
+      -- reify :: Nf x -> Nf x
+      -- reify = id
 
-  fromList :: [] x -> Tm x
-  fromList = \case
-    []       -> mempty
-    (x : xs) -> k x <> fromList xs
+      -- reify :: D x -> Nf x
+      -- reify = ($ E') . unD
 
-  -- | The normal form using lists produced right-associated
-  -- composition chains terminated by the monoidal unit:
-  --
-  -- >>> normViaList (K 0 :*: K 1)
-  -- (:*:) (K 0) ((:*:) (K 1) E)
-  normViaList :: Tm x -> Tm x
-  normViaList = fromList . eval
+      -- >>> norm (K 0 :*: K 1)
+      -- (:*:) (K 0) ((:*:) (K 1) E)
+      reify :: [x] -> Nf' x
+      reify = foldr (:***:) E''
 
   -- Examples
   t1 :: Tm Int
