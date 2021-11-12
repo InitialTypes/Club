@@ -1,38 +1,70 @@
-{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE DeriveFoldable        #-}
+{-# LANGUAGE DeriveFunctor         #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE StandaloneDeriving    #-}
 module FreeMonoids where
+  import Control.Monad
+  import Data.Foldable
 
   -- Terms
   data Tm x where
     E     :: Tm x
     (:*:) :: Tm x -> Tm x -> Tm x
     K     :: x -> Tm x
-    deriving (Eq, Show)
+    deriving (Eq, Show, Functor, Foldable)
+
+  fresh :: x -> Tm x
+  fresh = K
+
+  subst :: (x -> Tm y) -> (Tm x -> Tm y)
+  subst s = fold . fmap s
+
+  instance Applicative Tm where
+    pure  = return
+    (<*>) = ap
+
+  instance Monad Tm where
+    return = fresh
+    (>>=)  = flip subst
+
+  newtype PP = PP { unPP :: String }
+
+  instance Semigroup PP where
+    l <> r = PP $ concat [ "(", unPP l, " • ", unPP r, ")" ]
+
+  instance Monoid PP where
+    mempty = PP "e"
+
+  pp :: (Foldable t, Show x) => t x -> String
+  pp = unPP . foldMap (PP . show)
+
+  prettyPrint :: (Foldable t, Show x) => t x -> IO ()
+  prettyPrint = putStrLn . pp
 
   -- Normal forms that are either unit or (right-associated) products of parameters
   data Nf x where
     Ne' :: Ne' x -> Nf x
     E'  :: Nf x
-    deriving (Eq, Show)
+    deriving (Eq, Show, Functor, Foldable)
 
   data Ne' x where
     Ne     :: Ne x -> Ne' x
     (:**:) :: Ne x -> Ne' x -> Ne' x
-    deriving (Eq, Show)
+    deriving (Eq, Show, Functor, Foldable)
 
   data Ne x where
     K' :: x -> Ne x
-    deriving (Eq, Show)
+    deriving (Eq, Show, Functor, Foldable)
 
   -- Normal forms that are (right-associated) unit-terminated products of parameters
   data Nf' x where
     E''     :: Nf' x
     (:***:) :: x -> Nf' x -> Nf' x
-    deriving (Eq, Show)
+    deriving (Eq, Show, Functor, Foldable)
 
   -- Embed normal forms into terms
   class NormalForm t x where
