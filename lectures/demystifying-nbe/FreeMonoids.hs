@@ -67,8 +67,8 @@ module FreeMonoids where
     deriving (Eq, Show, Functor, Foldable)
 
   -- Embed normal forms into terms
-  class NormalForm t x where
-    embNf :: t x -> Tm x
+  class NormalForm n x where
+    embNf :: n x -> Tm x
 
   instance NormalForm Nf x where
     embNf E'      = E
@@ -138,19 +138,27 @@ module FreeMonoids where
   eval (K x)       = k x
 
   -- Normalization
+  class (MonoidOps m x, NormalForm n x) => Reifiable m n x where
+    reify :: m x -> n x
+
+  instance Reifiable Nf Nf x where
+    reify = id
+
+  instance Reifiable D Nf x where
+    reify = ($ E') . unD
+
+  instance Reifiable [] Nf' x where
+    -- >>> norm (K 0 :*: K 1)
+    -- (:*:) (K 0) ((:*:) (K 1) E)
+    reify = foldr (:***:) E''
+
   norm :: Tm x -> Tm x
-  norm = embNf . reify . eval
+  norm = embNf . r . eval
     where
-      -- reify :: Nf x -> Nf x
-      -- reify = id
-
-      -- reify :: D x -> Nf x
-      -- reify = ($ E') . unD
-
-      -- >>> norm (K 0 :*: K 1)
-      -- (:*:) (K 0) ((:*:) (K 1) E)
-      reify :: [x] -> Nf' x
-      reify = foldr (:***:) E''
+      -- r :: Nf x -> Nf x
+      -- r :: D x -> Nf x
+      r :: [x] -> Nf' x
+      r = reify
 
   -- Examples
   t1 :: Tm Int
