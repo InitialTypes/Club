@@ -49,9 +49,8 @@ WF = ∀ {a} → Acc a
 
 -- Goal: prove Newman's diamond lemma:
 
-module _ (wf : WF) (lc : ∀ {a} → LocConfl a) where
-  newman's-lemma : ∀ {a} → Confl a
-  newman's-lemma = {!!}
+newman's-lemma : WF → (∀{a} → LocConfl a) → ∀{a} → Confl a
+newman's-lemma wf lc = {!!}
 
--- Hint: the lemma cannot be proven directly in this formulation, a
--- proof needs auxiliary lemmata and definitions.
+-- Hint: can maybe not be proven directly in this formulation,
+-- may need auxiliary lemmata (and/or definitions).
