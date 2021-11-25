@@ -35,9 +35,9 @@ Proofs / derivations `Γ ⊢ A` ("`Γ` entails `A`").
     ∧I   --------------    ∧Eᵢ  ------------
          Γ ⊢ A ∧ B              Γ ⊢ Aᵢ
 
-         Γ.A ⊢ B                Γ ⊢ A ⇒ B    Γ ⊢ A
+         Γ.A ⊢ B               Γ ⊢ A ⇒ B    Γ ⊢ A
     ⇒I   ---------         ⇒E  -------------------
-         Γ ⊢ A ⇒ B              Γ ⊢ B
+         Γ ⊢ A ⇒ B             Γ ⊢ B
 
 Full IPL
 --------
@@ -57,7 +57,7 @@ Additional inference rules:
 
          Γ ⊢ Aᵢ              Γ ⊢ A ∨ B   Γ.A ⊢ C   Γ.B ⊢ C
     ∨Iᵢ  ------------    ∨E  -----------------------------
-         Γ ⊢ A₁ ∨ A₂        Γ ⊢ C
+         Γ ⊢ A₁ ∨ A₂         Γ ⊢ C
 
 Negation: `¬A = (A ⇒ ⊥)`.
 
@@ -108,7 +108,7 @@ Negative fragment:
          Γ ⊢ A ∧ B ⇑               Γ ⊢ Aᵢ ↓
 
          Γ.A ⊢ B ⇑                Γ ⊢ A ⇒ B ↓   Γ ⊢ A ⇑
-    ⇒I   -----------          ⇒E  -------------------
+    ⇒I   -----------          ⇒E  ---------------------
          Γ ⊢ A ⇒ B ⇑              Γ ⊢ B ↓
 
 Positive connectives:
