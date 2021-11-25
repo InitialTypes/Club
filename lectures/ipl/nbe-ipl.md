@@ -178,7 +178,7 @@ Interpretation of formula `⟦A⟧w` (extended from `⟦X⟧w`):
 - `⟦A ∧ B⟧w` iff `⟦A⟧w` and `⟦B⟧w`.
 - `⟦A ⇒ B⟧w` iff `⟦A⟧w'` implies `⟦B⟧w'` for all `w' ≤ w`.
 - `⟦⊥⟧w` never.
-- `⟦A ∧ B⟧w` iff `⟦A⟧w` or `⟦B⟧w`.
+- `⟦A ∨ B⟧w` iff `⟦A⟧w` or `⟦B⟧w`.
 
 
 Application of Kripke models: IPL is non-classical
@@ -223,7 +223,7 @@ We employ the _universal model_ where
 
 Lemma (mutual by induction on `A`):
 1. Reflection (unquote): if `Δ ⊢ A ↓` then `⟦A⟧Δ`.
-2. Reification (quote): if `⟦A⟧Δ` then `Δ ⊢ A ⇓`.
+2. Reification (quote): if `⟦A⟧Δ` then `Δ ⊢ A ⇑`.
 
 Lemma (Identity, by induction on `Γ`): `⟦Γ⟧Γ`.
 
