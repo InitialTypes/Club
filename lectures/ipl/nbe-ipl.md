@@ -221,7 +221,7 @@ We employ the _universal model_ where
 - `⟦X⟧Δ` iff `Δ ⊢ X ↓` (neutral proof)
 - `⟦X⟧` is monotone because derivations are closed under thinning
 
-Lemma (mutual by induction on `A`):
+Lemma (for negative `A`, mutual by induction on `A`):
 1. Reflection (unquote): if `Δ ⊢ A ↓` then `⟦A⟧Δ`.
 2. Reification (quote): if `⟦A⟧Δ` then `Δ ⊢ A ⇑`.
 
