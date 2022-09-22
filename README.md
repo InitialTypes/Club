@@ -2,9 +2,9 @@
 
 Weekly informal meeting and PhD course _Types and programming languages_ at the Department of Computer Science and Engineering, Chalmers and Gothenburg University
 
-Academic year 2021/22:
+<!-- Academic year 2022/23:
 
-- First meeting on _Thu, 9 Sep 2021_
+- First meeting on _Thu, TBD 2022_ -->
 - Schedule: see [wiki](https://github.com/InitialTypes/Club/wiki#initial-types-club)
 - Mailing list: <initial-types@lists.chalmers.se> ([subscribe](https://lists.chalmers.se/mailman/listinfo/initial-types) to receive announcements, [archive](https://lists.chalmers.se/mailman/private/initial-types/))
 
